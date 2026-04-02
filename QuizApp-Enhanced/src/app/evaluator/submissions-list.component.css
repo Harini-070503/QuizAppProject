@@ -1,0 +1,24 @@
+﻿.eval-page { min-height: 100vh; background: var(--bg); font-family: var(--font-body); }
+.eval-container { padding: 40px 20px 60px; max-width: 900px; }
+.eval-header { margin-bottom: 28px; }
+.back-link { color: var(--text-3); text-decoration: none; font-size: 0.88rem; }
+.back-link:hover { color: var(--brand); }
+.eval-title { font-size: 1.6rem; font-weight: 800; color: var(--text); margin: 8px 0 0; }
+.eval-sub { color: var(--text-3); margin: 4px 0 0; }
+.eval-loading, .eval-empty { text-align: center; padding: 40px; color: var(--text-3); }
+.eval-table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 24px; box-shadow: 0 2px 10px var(--shadow); }
+.eval-section-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+.eval-table { color: var(--text); }
+.eval-table thead th { color: var(--text-3); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); padding: 10px 12px; background: var(--surface-2); font-weight: 600; }
+.eval-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.eval-table tbody tr:hover { background: var(--surface-2); }
+.eval-table tbody td { padding: 12px; vertical-align: middle; color: var(--text); font-size: 0.87rem; }
+.score-val { font-weight: 700; color: var(--brand); }
+.pct-badge { font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; }
+.pct-high { background: var(--success-soft); color: var(--success); }
+.pct-mid  { background: var(--warning-soft); color: var(--warning); }
+.pct-low  { background: var(--danger-soft);  color: var(--danger); }
+.date-cell { font-size: 0.82rem; color: var(--text-2); }
+.btn-sm-eval { font-size: 0.78rem; font-weight: 600; padding: 5px 11px; border-radius: var(--radius-sm); text-decoration: none; transition: all 0.2s; cursor: pointer; border: none; }
+.btn-view { background: var(--brand-soft); color: var(--brand); border: 1px solid var(--brand-muted); }
+.btn-view:hover { background: var(--brand); color: #fff; }

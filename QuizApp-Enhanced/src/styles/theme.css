@@ -1,0 +1,160 @@
+/* ===========================
+   DESIGN SYSTEM — MINIMAL & CLEAN
+   =========================== */
+
+:root {
+  /* Brand */
+  --brand: #4f6ef7;
+  --brand-hover: #3a57e8;
+  --brand-soft: #eef1fe;
+  --brand-muted: #c7d0fb;
+
+  /* Semantic */
+  --success: #3daa6e;
+  --success-soft: #e8f7ef;
+  --danger: #e05252;
+  --danger-soft: #fdf0f0;
+  --warning: #d4900a;
+  --warning-soft: #fef8ec;
+  --info: #3a8fc7;
+  --info-soft: #eaf4fb;
+
+  /* Light palette */
+  --light-bg:        #f5f6fa;
+  --light-surface:   #ffffff;
+  --light-surface-2: #f0f2f8;
+  --light-border:    #e2e5ef;
+  --light-text:      #1e2235;
+  --light-text-2:    #3d4266;
+  --light-text-3:    #6b7194;
+  --light-shadow:    rgba(30, 34, 53, 0.08);
+
+  /* Dark palette */
+  --dark-bg:        #13151f;
+  --dark-surface:   #1c1f2e;
+  --dark-surface-2: #252839;
+  --dark-border:    #2e3248;
+  --dark-text:      #e8eaf2;
+  --dark-text-2:    #8b90a8;
+  --dark-text-3:    #555a72;
+  --dark-shadow:    rgba(0, 0, 0, 0.3);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  /* Fonts */
+  --font-body: 'Syne', sans-serif;
+  --font-display: 'Syne', sans-serif;
+}
+
+/* ── Light theme (default) ── */
+body, .light-theme {
+  --bg:        var(--light-bg);
+  --surface:   var(--light-surface);
+  --surface-2: var(--light-surface-2);
+  --border:    var(--light-border);
+  --text:      var(--light-text);
+  --text-2:    var(--light-text-2);
+  --text-3:    var(--light-text-3);
+  --shadow:    var(--light-shadow);
+}
+
+/* ── Dark theme ── */
+.dark-theme {
+  --bg:        var(--dark-bg);
+  --surface:   var(--dark-surface);
+  --surface-2: var(--dark-surface-2);
+  --border:    var(--dark-border);
+  --text:      var(--dark-text);
+  --text-2:    #c4c8dc;
+  --text-3:    var(--dark-text-3);
+  --shadow:    var(--dark-shadow);
+
+  /* Brand soft/muted need to be dark-friendly */
+  --brand:       #7b93fa;
+  --brand-soft:  #1e2340;
+  --brand-muted: #3a4580;
+
+  /* Semantic soft overrides for dark */
+  --success-soft: #0e2a1a;
+  --danger-soft:  #2a0e0e;
+  --warning-soft: #2a1e00;
+  --info-soft:    #0e1e2a;
+}
+
+/* ── Base transitions ── */
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ── Theme toggle button ── */
+.theme-toggle {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+.theme-toggle:hover {
+  background: var(--brand-soft);
+  border-color: var(--brand-muted);
+  color: var(--brand);
+}
+
+/* ── Quiz question nav buttons ── */
+.question-nav-button {
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+.question-nav-button:hover { background: var(--surface-2); }
+.question-nav-button.attended { background: var(--success); border-color: var(--success); color: #fff; }
+.question-nav-button.current  { background: var(--brand);   border-color: var(--brand);   color: #fff; transform: scale(1.08); }
+.question-nav-button.pending  { background: var(--surface-2); color: var(--text-3); }
+
+/* ── Quiz timer ── */
+.quiz-timer {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.quiz-timer.warning { background: var(--warning-soft); border-color: var(--warning); color: var(--warning); }
+.quiz-timer.danger  { background: var(--danger-soft);  border-color: var(--danger);  color: var(--danger); animation: pulse 0.6s infinite; }
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+/* ── Option cards ── */
+.option-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text);
+}
+.option-card:hover   { background: var(--brand-soft); border-color: var(--brand-muted); }
+.option-card.selected { background: var(--brand); border-color: var(--brand); color: #fff; }

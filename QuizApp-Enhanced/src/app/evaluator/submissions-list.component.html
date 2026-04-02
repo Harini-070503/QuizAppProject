@@ -1,0 +1,64 @@
+<div class="eval-page">
+  <div class="container eval-container">
+
+    <div class="eval-header">
+      <div>
+        <a routerLink="/evaluator/dashboard" class="back-link">← Back to Dashboard</a>
+        <h1 class="eval-title">📥 Submissions</h1>
+        @if (quizName()) { <p class="eval-sub">Quiz: <strong>{{ quizName() }}</strong></p> }
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="eval-loading">Loading submissions...</div>
+    } @else if (error()) {
+      <div class="alert alert-danger">{{ error() }}</div>
+    } @else if (submissions().length === 0) {
+      <div class="eval-empty">No submissions yet for this quiz.</div>
+    } @else {
+      <div class="eval-table-card">
+        <h3 class="eval-section-title">{{ submissions().length }} Submission(s)</h3>
+        <div class="table-responsive">
+          <table class="table eval-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th class="text-center">Score</th>
+                <th class="text-center">Max</th>
+                <th class="text-center">%</th>
+                <th>Submitted</th>
+                <th class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of submissions(); track s.attemptAnswerId; let i = $index) {
+                <tr>
+                  <td>{{ i + 1 }}</td>
+                  <td><strong>{{ s.username }}</strong></td>
+                  <td class="text-center"><span class="score-val">{{ s.totalMark }}</span></td>
+                  <td class="text-center text-muted">{{ s.maxMark }}</td>
+                  <td class="text-center">
+                    <span class="pct-badge"
+                      [class.pct-high]="s.percentage >= 80"
+                      [class.pct-mid]="s.percentage >= 50 && s.percentage < 80"
+                      [class.pct-low]="s.percentage < 50">
+                      {{ s.percentage | number:'1.0-0' }}%
+                    </span>
+                  </td>
+                  <td class="date-cell">{{ s.submittedAt | date:'dd MMM yyyy, hh:mm a' }}</td>
+                  <td class="text-center">
+                    <button class="btn-sm-eval btn-view" (click)="viewDetail(s.attemptAnswerId)">
+                      👁 Review
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

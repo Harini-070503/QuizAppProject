@@ -1,0 +1,175 @@
+﻿<div class="result-page">
+
+  @if (loading()) {
+    <div class="result-loading">
+      <div class="loading-spinner"></div>
+      <p>Loading results...</p>
+    </div>
+  } @else if (result()) {
+    <div class="container result-container">
+
+      <!-- ── Score Board ── -->
+      <div class="score-hero">
+        @if (result()!.isPendingEvaluation) {
+          <!-- Pending Evaluation state -->
+          <div class="result-icon">📋</div>
+          <h1 class="result-headline">Submitted for Evaluation</h1>
+          <div class="pending-eval-msg">
+            <p>Your answers have been submitted. The evaluator will review and grade your test.</p>
+            <p class="pending-sub">You will be notified once grading is complete.</p>
+          </div>
+        } @else {
+          <div class="result-icon">
+            @if (result()!.percentage >= 80) { 🏆 }
+            @else if (result()!.percentage >= 50) { 👏 }
+            @else { 💪 }
+          </div>
+          <h1 class="result-headline">
+            @if (result()!.percentage >= 80) { Outstanding! }
+            @else if (result()!.percentage >= 50) { Well Done! }
+            @else { Keep Practicing! }
+          </h1>
+
+          <!-- Score ring -->
+          <div class="score-ring-wrap">
+            <svg class="score-ring" viewBox="0 0 120 120">
+              <circle class="ring-bg" cx="60" cy="60" r="52" />
+              <circle class="ring-fill" cx="60" cy="60" r="52"
+                [style.strokeDashoffset]="ringOffset()"
+                [style.stroke]="ringColor()" />
+            </svg>
+            <div class="score-ring-inner">
+              <span class="score-pct">{{ result()!.percentage | number:'1.0-0' }}%</span>
+              <span class="score-lbl">Score</span>
+            </div>
+          </div>
+
+          <!-- Summary chips -->
+          <div class="score-chips">
+            <div class="score-chip correct-chip">
+              <span class="chip-num">{{ correctCount() }}</span>
+              <span class="chip-lbl">✓ Correct</span>
+            </div>
+            <div class="score-chip wrong-chip">
+              <span class="chip-num">{{ wrongCount() }}</span>
+              <span class="chip-lbl">✗ Wrong</span>
+            </div>
+            <div class="score-chip total-chip">
+              <span class="chip-num">{{ result()!.totalMark }}</span>
+              <span class="chip-lbl">Total Marks</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- ── Reward Card (hidden for Evaluators) ── -->
+      @if (coinsEarned() > 0 && !isEvaluator && !result()!.isPendingEvaluation) {
+        <div class="reward-card">
+          <div class="reward-icon">🎉</div>
+          <div class="reward-body">
+            <p class="reward-headline">You earned {{ coinsEarned() }} coins!</p>
+            <div class="reward-chips">
+              <div class="reward-chip marks-chip">
+                <span class="rchip-icon">📝</span>
+                <span class="rchip-val">{{ result()!.totalMark }}</span>
+                <span class="rchip-lbl">Marks</span>
+              </div>
+              <div class="reward-chip coins-chip">
+                <span class="rchip-icon">🪙</span>
+                <span class="rchip-val">+{{ coinsEarned() }}</span>
+                <span class="rchip-lbl">Coins</span>
+              </div>
+              <div class="reward-chip total-chip">
+                <span class="rchip-icon">💰</span>
+                <span class="rchip-val">{{ coinSvc.coins() }}</span>
+                <span class="rchip-lbl">Total</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ── Question Review (hidden for pending evaluation) ── -->
+      @if (!result()!.isPendingEvaluation) {
+        <div class="feedback-section">
+          <div class="feedback-title-row">
+            <h2 class="feedback-title">Question Review</h2>
+            <span class="feedback-count">{{ result()!.feedback.length }} questions</span>
+          </div>
+
+          @if (!result()!.feedback.length) {
+            <div class="no-feedback">No question data available.</div>
+          } @else {
+            <div class="feedback-list">
+              @for (fb of result()!.feedback; track fb.questionId; let i = $index) {
+                <div class="feedback-item" [class.fb-correct]="fb.isCorrect" [class.fb-wrong]="!fb.isCorrect">
+                  <div class="fb-header">
+                    <span class="fb-q-num">{{ i + 1 }}</span>
+                    <p class="fb-question-text">{{ questionTextMap()[fb.questionId] || ('Question ' + (i + 1)) }}</p>
+                    @if (fb.isCorrect) { <span class="fb-badge correct-badge">✓ Correct</span> }
+                    @else { <span class="fb-badge wrong-badge">✗ Wrong</span> }
+                  </div>
+                  <div class="fb-options">
+                    @for (opt of getOptionsForQuestion(fb.questionId); track opt.key) {
+                      <div class="fb-option"
+                        [class.opt-correct]="opt.key === getCorrectOption(fb.questionId)"
+                        [class.opt-wrong]="opt.key === fb.yourOption && opt.key !== getCorrectOption(fb.questionId)"
+                        [class.opt-neutral]="opt.key !== getCorrectOption(fb.questionId) && opt.key !== fb.yourOption">
+                        <span class="opt-letter">{{ opt.key }}</span>
+                        <span class="opt-text">{{ opt.value }}</span>
+                        <span class="opt-icon">
+                          @if (opt.key === getCorrectOption(fb.questionId)) { ✓ }
+                          @else if (opt.key === fb.yourOption && opt.key !== getCorrectOption(fb.questionId)) { ✗ }
+                        </span>
+                      </div>
+                    }
+                  </div>
+                  @if (!fb.isCorrect) {
+                    <div class="fb-footer">
+                      <span class="fb-footer-item your-pick">Your answer: <strong>{{ fb.yourOption || 'Skipped' }}</strong></span>
+                      <span class="fb-footer-sep">·</span>
+                      <span class="fb-footer-item correct-pick">Correct: <strong>{{ fb.correctOption }}</strong></span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- ── Certificate ── -->
+        @if (!showCertificate()) {
+          <div class="cert-trigger">
+            <button class="btn-cert" (click)="viewCertificate()">🎓 View Certificate</button>
+          </div>
+        }
+        @if (showCertificate()) {
+          <div class="cert-panel">
+            <div class="cert-panel-header">
+              <h3 class="cert-panel-title">🎓 Your Certificate</h3>
+              <button class="cert-close" (click)="hideCertificate()">✕</button>
+            </div>
+            <div class="cert-canvas-wrap">
+              <canvas #certCanvas class="cert-canvas"></canvas>
+            </div>
+            <div class="cert-panel-actions">
+              <button class="btn-download-cert" (click)="downloadCertificate()">⬇ Download Certificate</button>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- ── Actions ── -->
+      <div class="result-actions">
+        @if (isEvaluator) {
+          <a routerLink="/evaluator/dashboard" class="btn-dashboard">← Back to Dashboard</a>
+        } @else {
+          <a routerLink="/dashboard" class="btn-dashboard">← Back to Dashboard</a>
+          <a routerLink="/leaderboard" class="btn-leaderboard">🏆 View Leaderboard</a>
+        }
+      </div>
+
+    </div>
+  }
+
+</div>

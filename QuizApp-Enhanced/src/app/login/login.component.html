@@ -1,0 +1,74 @@
+<div class="auth-page">
+  <div class="auth-bg">
+    <div class="auth-orb orb-a"></div>
+    <div class="auth-orb orb-b"></div>
+  </div>
+  <div class="container auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">⚡</div>
+        <h2 class="auth-title">Welcome Back</h2>
+        <p class="auth-subtitle">Sign in to continue your quiz journey</p>
+      </div>
+
+      @if (error()) {
+        <div class="alert-custom alert-error">
+          <span>⚠️</span> {{ error() }}
+        </div>
+      }
+      @if (success()) {
+        <div class="alert-custom alert-success">
+          <span>✅</span> {{ success() }}
+        </div>
+      }
+
+      <form (ngSubmit)="onLogin()">
+        <div class="field-group">
+          <label class="field-label">Username</label>
+          <div class="field-wrap">
+            <span class="field-icon">👤</span>
+            <input
+              type="text"
+              class="field-input"
+              [(ngModel)]="username"
+              name="username"
+              placeholder="Enter your username"
+              required
+            />
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <div class="field-wrap">
+            <span class="field-icon">🔑</span>
+            <input
+              [type]="showPass() ? 'text' : 'password'"
+              class="field-input"
+              [(ngModel)]="password"
+              name="password"
+              placeholder="Enter your password"
+              required
+            />
+            <button type="button" class="toggle-pass" (click)="showPass.set(!showPass())">
+              {{ showPass() ? '🙈' : '👁️' }}
+            </button>
+          </div>
+        </div>
+        <div class="forgot-link">
+          <a routerLink="/forgot-password">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn-auth" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner"></span> Signing in...
+          } @else {
+            Sign In
+          }
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Don't have an account? <a routerLink="/register">Create one</a>
+      </div>
+    </div>
+  </div>
+</div>

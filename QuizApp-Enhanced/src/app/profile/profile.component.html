@@ -1,0 +1,99 @@
+﻿<div class="profile-page">
+  <div class="profile-bg">
+    <div class="porb porb-1"></div>
+    <div class="porb porb-2"></div>
+  </div>
+  <div class="container profile-container">
+    <div class="profile-header">
+      <div class="profile-avatar">{{ auth.currentUser()?.username?.charAt(0)?.toUpperCase() }}</div>
+      <div>
+        <h1 class="profile-username">{{ auth.currentUser()?.username }}</h1>
+        <span class="profile-role-badge">{{ auth.currentUser()?.role }}</span>
+      </div>
+    </div>
+
+    @if (success()) {
+      <div class="alert-custom alert-success">✅ {{ success() }}</div>
+    }
+    @if (error()) {
+      <div class="alert-custom alert-error">⚠️ {{ error() }}</div>
+    }
+
+    <div class="profile-card">
+      <h3 class="card-section-title">Account Info</h3>
+      <div class="info-row">
+        <span class="info-label">Username</span>
+        <span class="info-val">{{ auth.currentUser()?.username }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email</span>
+        <span class="info-val">{{ auth.currentUser()?.email }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Role</span>
+        <span class="info-val">{{ auth.currentUser()?.role }}</span>
+      </div>
+    </div>
+
+    <!-- My Attempts -->
+    <div class="profile-card">
+      <h3 class="card-section-title">My Attempts</h3>
+      @if (attemptsLoading()) {
+        <p class="info-val">Loading attempts...</p>
+      } @else if (attempts().length === 0) {
+        <p class="info-val">No attempts yet. Go take a quiz!</p>
+      } @else {
+        <div class="attempts-list">
+          @for (attempt of attempts(); track attempt.attemptAnswerId) {
+            <div class="attempt-row">
+              <div class="attempt-info">
+                <span class="attempt-quiz-name">{{ getQuizName(attempt.quizId) }}</span>
+                <span class="attempt-score">{{ attempt.percentage | number:'1.0-0' }}% &nbsp;·&nbsp; {{ attempt.totalMark }} marks</span>
+              </div>
+              <a [routerLink]="['/result', attempt.attemptAnswerId]" class="btn-view-result">View Result →</a>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="profile-card">
+      <h3 class="card-section-title">Edit Profile</h3>
+      <form (ngSubmit)="onSave()">
+        <div class="field-group">
+          <label class="field-label">Full Name</label>
+          <input type="text" class="field-input" [(ngModel)]="form.name" name="name" placeholder="Your name" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Phone Number</label>
+          <input type="text" class="field-input" [(ngModel)]="form.phoneNumber" name="phone" placeholder="+91 XXXXX XXXXX" />
+        </div>
+        <div class="row-fields">
+          <div class="field-group">
+            <label class="field-label">State</label>
+            <input type="text" class="field-input" [(ngModel)]="form.state" name="state" placeholder="State" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">City</label>
+            <input type="text" class="field-input" [(ngModel)]="form.city" name="city" placeholder="City" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Address Line 1</label>
+          <input type="text" class="field-input" [(ngModel)]="form.addressLine1" name="addr1" placeholder="Street address" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Address Line 2</label>
+          <input type="text" class="field-input" [(ngModel)]="form.addressLine2" name="addr2" placeholder="Apt, Suite, etc." />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Pincode</label>
+          <input type="text" class="field-input" [(ngModel)]="form.pincode" name="pin" placeholder="Pincode" />
+        </div>
+        <button type="submit" class="btn-save" [disabled]="saving()">
+          @if (saving()) { <span class="spinner"></span> Saving... } @else { Save Changes }
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

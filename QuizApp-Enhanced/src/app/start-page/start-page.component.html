@@ -1,0 +1,111 @@
+<div class="landing-wrapper">
+  <!-- Animated background -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Floating particles -->
+  <div class="particles">
+    @for (p of particles; track $index) {
+      <div class="particle" [style.left.%]="p.x" [style.animationDelay]="p.delay + 's'" [style.animationDuration]="p.dur + 's'"></div>
+    }
+  </div>
+
+  <div class="container landing-container">
+    <div class="row align-items-center min-vh-100">
+      <div class="col-lg-6 hero-left">
+        <div class="badge-pill mb-4">
+          <span class="pulse-dot"></span>
+          Live Quiz Platform
+        </div>
+        <h1 class="hero-title">
+          Challenge Your<br>
+          <span class="gradient-text">Knowledge</span>
+        </h1>
+        <p class="hero-subtitle">
+          Compete in real-time quizzes, climb leaderboards, and prove you're the smartest in the room.
+        </p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-num">500+</span>
+            <span class="stat-label">Quizzes</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-num">10K+</span>
+            <span class="stat-label">Players</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-num">50+</span>
+            <span class="stat-label">Categories</span>
+          </div>
+        </div>
+        <div class="hero-cta">
+          <a routerLink="/dashboard" class="btn-start">
+            <span>Start Playing</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a routerLink="/register" class="btn-outline-start">Create Account</a>
+        </div>
+      </div>
+
+      <div class="col-lg-6 hero-right">
+        <div class="quiz-card-preview">
+          <div class="preview-header">
+            <span class="preview-level">Level 5</span>
+            <div class="preview-timer">
+              <span class="timer-icon">⏱</span>
+              <span class="timer-val">0:42</span>
+            </div>
+          </div>
+          <div class="preview-progress">
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" style="width: 70%"></div>
+            </div>
+            <span class="progress-label">07/10</span>
+          </div>
+          <div class="preview-question">
+            What is the 6<sup>th</sup> planet in the solar system?
+          </div>
+          <div class="preview-options">
+            <div class="option-item">
+              <span class="opt-num">01</span> Jupiter
+            </div>
+            <div class="option-item selected">
+              <span class="opt-num">02</span> Saturn
+            </div>
+            <div class="option-item">
+              <span class="opt-num">03</span> Earth
+            </div>
+            <div class="option-item">
+              <span class="opt-num">04</span> Neptune
+            </div>
+          </div>
+          <div class="preview-nav">
+            <button class="prev-btn">← Previous</button>
+            <button class="next-btn">Next →</button>
+          </div>
+        </div>
+
+        <!-- Score Card floating -->
+        <div class="score-card-float">
+          <div class="score-label">Your Final Score</div>
+          <div class="score-circle">
+            <span class="score-num">87%</span>
+          </div>
+          <div class="score-sub">🏆 Top 3% this week!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom wave -->
+  <div class="bottom-wave">
+    <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+      <path d="M0,60 C240,100 480,20 720,60 C960,100 1200,20 1440,60 L1440,120 L0,120 Z" fill="rgba(139,92,246,0.08)"/>
+    </svg>
+  </div>
+</div>

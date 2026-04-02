@@ -1,0 +1,117 @@
+﻿<nav class="navbar navbar-expand-lg quiz-navbar">
+  <div class="container">
+    <a class="navbar-brand quiz-brand" routerLink="/">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-text">QuizZap</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-center gap-2">
+        @if (auth.isLoggedIn()) {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+          </li>
+          @if (!auth.isCreator() && !auth.isEvaluator()) {
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/leaderboard" routerLinkActive="active">Leaderboard</a>
+            </li>
+          }
+          @if (auth.isCreator()) {
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin/quiz/create" routerLinkActive="active">Create Quiz</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin/categories" routerLinkActive="active">Categories</a>
+            </li>
+          }
+          @if (auth.isEvaluator()) {
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/evaluator/dashboard" routerLinkActive="active">Eval Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/evaluator/groups" routerLinkActive="active">Groups</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin/quiz/create" routerLinkActive="active">Create Quiz</a>
+            </li>
+          }
+          @if (!auth.isCreator() && !auth.isEvaluator()) {
+            <li class="nav-item">
+              <div class="coin-badge" title="Your coins">
+                🪙 <span class="coin-count">{{ coinSvc.coins() }}</span>
+              </div>
+            </li>
+          }
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/profile" routerLinkActive="active">
+              <span class="user-badge">{{ auth.currentUser()?.username?.charAt(0)?.toUpperCase() }}</span>
+            </a>
+          </li>
+          <!-- Notification Bell -->
+          <li class="nav-item notif-wrap">
+            <button class="notif-bell" (click)="toggleNotifPanel()" title="Notifications">
+              🔔
+              @if (notifSvc.unreadCount() > 0) {
+                <span class="notif-badge">{{ notifSvc.unreadCount() }}</span>
+              }
+            </button>
+            @if (showNotifPanel()) {
+              <div class="notif-panel">
+                <div class="notif-panel-header">
+                  <span class="notif-panel-title">🔔 Notifications</span>
+                  @if (notifSvc.unreadCount() > 0) {
+                    <button class="notif-mark-all" (click)="markAllRead()">Mark all read</button>
+                  }
+                </div>
+                @if (notifSvc.notifications().length === 0) {
+                  <div class="notif-empty">No notifications yet</div>
+                } @else {
+                  <div class="notif-list">
+                    @for (n of notifSvc.notifications(); track n.notificationId) {
+                      <div class="notif-item" [class.notif-unread]="!n.isRead" (click)="openNotif(n)">
+                        <div class="notif-icon">
+                          @if (n.type === 'quiz_assigned') { 📋 }
+                          @else if (n.type === 'score_updated') { ✅ }
+                          @else if (n.type === 'test_submitted') { 📝 }
+                          @else { 🔔 }
+                        </div>
+                        <div class="notif-body">
+                          <p class="notif-title">{{ n.title }}</p>
+                          <p class="notif-msg">{{ n.message }}</p>
+                          <span class="notif-time">{{ n.createdAt | date:'dd MMM, hh:mm a' }}</span>
+                        </div>
+                        @if (!n.isRead) { <span class="notif-dot"></span> }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </li>
+          <li class="nav-item">
+            <button class="theme-toggle" (click)="themeService.toggleTheme()" title="Toggle theme">
+              {{ themeService.isDark() ? '☀️' : '🌙' }}
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="btn-logout" (click)="auth.logout()">Logout</button>
+          </li>
+        } @else {
+          <li class="nav-item">
+            <button class="theme-toggle" (click)="themeService.toggleTheme()" title="Toggle theme">
+              {{ themeService.isDark() ? '☀️' : '🌙' }}
+            </button>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-ghost-quiz" routerLink="/login">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-primary-quiz" routerLink="/register">Register</a>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,409 @@
+<div class="question-manage-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <h2 class="gradient-text mb-1">Manage Questions</h2>
+          <p class="sub-text mb-0">
+            @if (quizName()) { <strong>{{ quizName() }}</strong> · }
+            Quiz ID: <code>{{ quizId() }}</code>
+            @if (quizTimeLimit()) {
+              <span class="time-badge">⏱ {{ quizTimeLimit() }} min overall</span>
+            }
+          </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <button class="btn btn-outline-success btn-sm px-3" (click)="openBulkPanel()">
+            📥 Bulk Upload
+          </button>
+          <button class="btn btn-outline-primary btn-sm px-3" (click)="openSettings()">
+            ⚙️ Quiz Settings
+          </button>
+          <button class="btn btn-outline-secondary btn-sm px-4" (click)="backToDashboard()">
+            ← Back to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Panel Modal -->
+  @if (showSettingsPanel()) {
+    <div class="settings-overlay" (click)="closeSettings()">
+      <div class="settings-modal" (click)="$event.stopPropagation()">
+        <div class="settings-modal-header">
+          <h4>⚙️ Quiz Settings</h4>
+          <button class="settings-close" (click)="closeSettings()">✕</button>
+        </div>
+
+        @if (settingsError()) { <div class="alert alert-danger py-2 mb-3">{{ settingsError() }}</div> }
+        @if (settingsSuccess()) { <div class="alert alert-success py-2 mb-3">✅ {{ settingsSuccess() }}</div> }
+
+        <div class="settings-field">
+          <label class="settings-label">Overall Time Limit (minutes)</label>
+          <input type="number" class="form-control" [(ngModel)]="settingsTimeLimit" placeholder="Leave blank for no limit" min="1" />
+          <small class="text-muted">Total time allowed for the entire quiz</small>
+        </div>
+
+        <div class="settings-field">
+          <label class="settings-label">Pass Mark</label>
+          <input type="number" class="form-control" [(ngModel)]="settingsPassMark" min="0" />
+        </div>
+
+        <div class="settings-field">
+          <label class="settings-label">Difficulty</label>
+          <select class="form-control" [(ngModel)]="settingsDifficulty">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
+        </div>
+
+        <div class="settings-field">
+          <label class="settings-label">Category</label>
+          <div class="d-flex gap-2">
+            <select class="form-control" [(ngModel)]="settingsCategoryId">
+              <option value="">Select category</option>
+              @for (c of categories(); track c.categoryId) {
+                <option [value]="c.categoryId">{{ c.categoryName }}</option>
+              }
+            </select>
+            <button type="button" class="btn btn-outline-primary btn-sm" (click)="openNewCatPanel()">+ New</button>
+          </div>
+
+          @if (showNewCatPanel()) {
+            <div class="new-cat-inline mt-2">
+              @if (newCatError()) { <div class="text-danger small mb-1">{{ newCatError() }}</div> }
+              <div class="d-flex gap-2">
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="newCatName" placeholder="New category name..." />
+                <button class="btn btn-success btn-sm" (click)="saveNewCategory()" [disabled]="newCatSaving()">
+                  @if (newCatSaving()) { ... } @else { Save }
+                </button>
+                <button class="btn btn-secondary btn-sm" (click)="cancelNewCat()">Cancel</button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end mt-3">
+          <button class="btn btn-secondary" (click)="closeSettings()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveSettings()" [disabled]="settingsSaving()">
+            @if (settingsSaving()) { Saving... } @else { Save Settings }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-container text-center py-5">
+      <div class="quiz-spinner mx-auto"></div>
+      <p class="mt-3 sub-text">Loading questions...</p>
+    </div>
+  }
+
+  <!-- Main Content -->
+  @if (!isLoading()) {
+    <div class="container mt-4 pb-5">
+
+      <!-- Success / Error banners -->
+      @if (successMsg()) {
+        <div class="alert alert-success alert-dismissible">
+          ✅ {{ successMsg() }}
+        </div>
+      }
+      @if (error() && !isAddMode()) {
+        <div class="alert alert-danger">
+          ❌ {{ error() }}
+        </div>
+      }
+
+      <!-- Questions Section -->
+      <div class="questions-section glass-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="section-title mb-0">Questions
+            <span class="q-count">{{ questions().length }} total</span>
+          </h4>
+        </div>
+
+        <!-- Empty state -->
+        @if (questions().length === 0) {
+          <div class="empty-state py-4">
+            <div class="empty-icon">❓</div>
+            <p>No questions yet. Add your first question below!</p>
+          </div>
+        }
+
+        <!-- Questions Table -->
+        @if (questions().length > 0) {
+          <div class="table-responsive mb-3">
+            <table class="table q-table">
+              <thead>
+                <tr>
+                  <th style="width:50px">#</th>
+                  <th>Question</th>
+                  <th style="width:80px" class="text-center">Options</th>
+                  <th style="width:60px" class="text-center">Marks</th>
+                  <th style="width:80px" class="text-center">Answer</th>
+                  <th style="width:160px" class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (question of paginatedQuestions(); track question.questionId; let idx = $index) {
+                  <tr [class.editing-row]="editingQuestionId() === question.questionId">
+                    <td class="q-num">{{ getQuestionNumber(idx) }}</td>
+                    <td class="q-text">{{ question.questionText }}</td>
+                    <td class="text-center">
+                      <span class="badge-opts">
+                        {{ question.options?.optionD && question.options?.optionD !== 'N/A' ? '4'
+                           : question.options?.optionC && question.options?.optionC !== 'N/A' ? '3' : '2' }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge-marks">{{ question.marks || 1 }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge-correct">{{ question.options?.correctOption }}</span>
+                    </td>
+                    <td class="text-center">
+                      <button class="btn btn-sm btn-outline-primary me-1" (click)="editQuestion(question)" title="Edit">
+                        ✏️ Edit
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" (click)="deleteQuestion(question.questionId)" title="Delete">
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          @if (totalPages() > 1) {
+            <nav class="mt-2 mb-3">
+              <ul class="pagination pagination-sm justify-content-center mb-0">
+                <li class="page-item" [class.disabled]="currentPage() === 1">
+                  <button class="page-link" (click)="previousPage()">‹ Prev</button>
+                </li>
+                @for (page of pageNumbers(); track page) {
+                  <li class="page-item" [class.active]="currentPage() === page">
+                    <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
+                  </li>
+                }
+                <li class="page-item" [class.disabled]="currentPage() === totalPages()">
+                  <button class="page-link" (click)="nextPage()">Next ›</button>
+                </li>
+              </ul>
+            </nav>
+          }
+        }
+
+        <!-- ADD QUESTION button at bottom -->
+        @if (!isAddMode()) {
+          <div class="text-center mt-3">
+            <button class="btn btn-success btn-add-q" (click)="showAddForm()">
+              + Add Question
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Bulk Upload Panel -->
+      @if (showBulkPanel()) {
+        <div class="bulk-panel glass-card p-4 mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="section-title mb-0">📥 Bulk Upload Questions</h4>
+            <button class="btn btn-sm btn-outline-secondary" (click)="closeBulkPanel()">✕ Close</button>
+          </div>
+
+          <!-- Instructions -->
+          <div class="bulk-info mb-3">
+            <p class="mb-1 small">Upload an Excel file with columns: <code>QuestionText, OptionA, OptionB, OptionC, OptionD, CorrectOption, Marks</code></p>
+            <p class="mb-2 small text-muted">OptionC, OptionD and Marks are optional. CorrectOption should be A, B, C or D (comma-separated for multi-answer e.g. <code>A,C</code>).</p>
+            <button class="btn btn-sm btn-outline-primary" (click)="downloadTemplate()">⬇ Download Template</button>
+          </div>
+
+          <!-- File input -->
+          <div class="mb-3">
+            <input
+              #bulkFileInput
+              type="file"
+              class="form-control"
+              accept=".xlsx,.xls,.csv"
+              (change)="onFileSelected($event)"
+            />
+            @if (bulkFileName()) {
+              <small class="text-muted mt-1 d-block">📄 {{ bulkFileName() }}</small>
+            }
+          </div>
+
+          @if (bulkError()) {
+            <div class="alert alert-danger py-2 mb-3" style="white-space:pre-line">❌ {{ bulkError() }}</div>
+          }
+
+          <!-- Preview -->
+          @if (bulkPreview().length > 0) {
+            <div class="bulk-preview mb-3">
+              <p class="fw-semibold mb-2">✅ {{ bulkPreview().length }} questions ready to upload:</p>
+              <div class="table-responsive" style="max-height:240px;overflow-y:auto">
+                <table class="table table-sm q-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Question</th>
+                      <th>Options</th>
+                      <th>Correct</th>
+                      <th>Marks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (q of bulkPreview(); track $index; let i = $index) {
+                      <tr>
+                        <td>{{ i + 1 }}</td>
+                        <td style="max-width:260px">{{ q.questionText }}</td>
+                        <td class="small">
+                          A: {{ q.options.optionA }}
+                          @if (q.options.optionB) { · B: {{ q.options.optionB }} }
+                          @if (q.options.optionC) { · C: {{ q.options.optionC }} }
+                          @if (q.options.optionD) { · D: {{ q.options.optionD }} }
+                        </td>
+                        <td><span class="badge-correct">{{ q.options.correctOption }}</span></td>
+                        <td><span class="badge-marks">{{ q.marks }}</span></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end">
+              <button class="btn btn-secondary" (click)="closeBulkPanel()">Cancel</button>
+              <button class="btn btn-success px-4" (click)="uploadBulkQuestions()" [disabled]="bulkUploading()">
+                @if (bulkUploading()) { ⏳ Uploading... } @else { 🚀 Upload {{ bulkPreview().length }} Questions }
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Add / Edit Question Form -->
+      @if (isAddMode()) {
+        <div class="question-form-container glass-card p-4">
+          <h4 class="section-title mb-4">
+            {{ isEditMode() ? '✏️ Edit Question' : '➕ Add New Question' }}
+          </h4>
+
+          @if (error()) {
+            <div class="alert alert-danger py-2 mb-3">❌ {{ error() }}</div>
+          }
+
+          <!-- Question Text -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Question Text <span class="text-danger">*</span></label>
+            <textarea
+              class="form-control"
+              rows="3"
+              name="questionText"
+              [(ngModel)]="questionText"
+              placeholder="Enter your question here...">
+            </textarea>
+          </div>
+
+          <!-- Marks -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Marks <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" style="max-width:120px" name="marks" [(ngModel)]="marks" min="1" max="100" placeholder="1" />
+            <small class="text-muted">Weightage for this question</small>
+          </div>
+
+          <!-- Question Type -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Question Type</label>
+            <div class="opt-count-group">
+              <button type="button" class="opt-count-btn" [class.active]="questionType === 'custom'" (click)="setQuestionType('custom')">Custom</button>
+              <button type="button" class="opt-count-btn" [class.active]="questionType === 'truefalse'" (click)="setQuestionType('truefalse')">True / False</button>
+              <button type="button" class="opt-count-btn" [class.active]="questionType === 'yesno'" (click)="setQuestionType('yesno')">Yes / No</button>
+            </div>
+          </div>
+
+          <!-- Option Count Selector (custom only) -->
+          @if (questionType === 'custom') {
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Number of Options <span class="text-danger">*</span></label>
+              <div class="opt-count-group">
+                <button type="button" class="opt-count-btn" [class.active]="optionCount === 2" (click)="setOptionCount(2)">2 Options</button>
+                <button type="button" class="opt-count-btn" [class.active]="optionCount === 3" (click)="setOptionCount(3)">3 Options</button>
+                <button type="button" class="opt-count-btn" [class.active]="optionCount === 4" (click)="setOptionCount(4)">4 Options</button>
+              </div>
+            </div>
+          }
+
+          <!-- Options -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Option A <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="optionA" [(ngModel)]="optionA" placeholder="Enter option A" [readonly]="questionType !== 'custom'" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Option B <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="optionB" [(ngModel)]="optionB" placeholder="Enter option B" [readonly]="questionType !== 'custom'" />
+            </div>
+            @if (optionCount >= 3) {
+              <div class="col-md-6">
+                <label class="form-label">Option C <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="optionC" [(ngModel)]="optionC" placeholder="Enter option C" />
+              </div>
+            }
+            @if (optionCount >= 4) {
+              <div class="col-md-6">
+                <label class="form-label">Option D <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="optionD" [(ngModel)]="optionD" placeholder="Enter option D" />
+              </div>
+            }
+          </div>
+
+          <!-- Correct Option(s) — multi-select -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Correct Answer(s) <span class="text-danger">*</span> <small class="text-muted">(select all that apply)</small></label>
+            <div class="correct-opt-group">
+              @for (opt of availableCorrectOptions(); track opt) {
+                <button
+                  type="button"
+                  class="correct-opt-btn"
+                  [class.active]="correctOptions.includes(opt)"
+                  (click)="toggleCorrect(opt)">
+                  Option {{ opt }}
+                </button>
+              }
+            </div>
+            @if (correctOptions.length > 1) {
+              <small class="text-muted mt-1 d-block">Multi-answer: {{ correctOptions.join(', ') }}</small>
+            }
+          </div>
+
+          <!-- Form Actions -->
+          <div class="d-flex gap-3 justify-content-end flex-wrap">
+            <button type="button" class="btn btn-secondary px-4" (click)="hideForm()" [disabled]="isSaving()">
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-success px-5"
+              (click)="isEditMode() ? updateQuestion() : addQuestion()"
+              [disabled]="isSaving()">
+              @if (isSaving()) { ⏳ Saving... }
+              @else if (isEditMode()) { ✅ Update Question }
+              @else { ➕ Add Question }
+            </button>
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+
+</div>

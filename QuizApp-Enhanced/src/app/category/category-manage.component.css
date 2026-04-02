@@ -1,0 +1,92 @@
+.cat-page { min-height: 100vh; background: var(--bg); font-family: var(--font-body); }
+
+.cat-container { position: relative; z-index: 1; padding: 40px 20px 60px; max-width: 800px; }
+.cat-header { display: flex; align-items: center; gap: 18px; margin-bottom: 28px; }
+.back-link { color: var(--text-3); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+.back-link:hover { color: var(--brand); }
+.cat-title { font-size: 1.7rem; font-weight: 800; color: var(--text); margin: 0; }
+
+.alert-err { padding: 11px 14px; border-radius: var(--radius-md); margin-bottom: 18px; background: var(--danger-soft); border: 1px solid #f5c0c0; color: var(--danger); font-size: 0.87rem; }
+.alert-ok  { padding: 11px 14px; border-radius: var(--radius-md); margin-bottom: 18px; background: var(--success-soft); border: 1px solid #b8e6cf; color: var(--success); font-size: 0.87rem; }
+
+.cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 640px) { .cat-grid { grid-template-columns: 1fr; } }
+
+.cat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.card-title { color: var(--text); font-size: 0.97rem; font-weight: 700; margin-bottom: 18px; padding-bottom: 11px; border-bottom: 1px solid var(--border); }
+
+.field-group { margin-bottom: 14px; }
+.field-label { display: block; color: var(--text-2); font-size: 0.77rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 7px; }
+.field-input {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 13px;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.field-input:focus { border-color: var(--brand); background: var(--surface); }
+.field-input::placeholder { color: var(--text-3); }
+
+.form-btns { display: flex; gap: 9px; }
+.btn-save {
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 7px;
+  transition: background 0.2s;
+  flex: 1; justify-content: center;
+}
+.btn-save:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-cancel-edit {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 10px 15px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.87rem;
+  transition: background 0.2s;
+}
+.btn-cancel-edit:hover { background: var(--border); }
+
+.spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.cat-loading { display: flex; justify-content: center; padding: 28px; }
+.mini-spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.cat-empty { text-align: center; color: var(--text-3); padding: 36px 20px; font-size: 0.87rem; }
+
+.cat-list { display: flex; flex-direction: column; gap: 7px; }
+.cat-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 13px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: background 0.15s;
+}
+.cat-item:hover { background: var(--brand-soft); border-color: var(--brand-muted); }
+.cat-item-icon { font-size: 0.97rem; }
+.cat-item-name { flex: 1; color: var(--text); font-size: 0.9rem; font-weight: 600; }
+.cat-item-actions { display: flex; gap: 5px; }
+.btn-edit-cat, .btn-delete-cat { background: none; border: none; cursor: pointer; padding: 4px 7px; border-radius: var(--radius-sm); font-size: 0.88rem; transition: background 0.2s; }
+.btn-edit-cat:hover   { background: var(--brand-soft); }
+.btn-delete-cat:hover { background: var(--danger-soft); }

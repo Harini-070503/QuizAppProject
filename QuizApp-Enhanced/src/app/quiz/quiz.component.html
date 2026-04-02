@@ -1,0 +1,305 @@
+<div class="quiz-container">
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="quiz-spinner"></div>
+      <p class="mt-3">Loading quiz...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error() && !loading()) {
+    <div class="error-container">
+      <div class="alert alert-danger">{{ error() }}</div>
+      <button class="btn btn-primary mt-3" (click)="exitQuiz()">Back to Dashboard</button>
+    </div>
+  }
+
+  <!-- Start Screen -->
+  @if (!hasStarted() && quiz() && !loading() && !error()) {
+    <div class="quiz-start-screen">
+      <div class="start-card">
+
+        @if (!hasAccess()) {
+          <div class="access-denied">
+            <div class="access-icon">🔒</div>
+            <h2 class="access-title">Access Restricted</h2>
+            <p class="access-msg">This quiz is only available to members of a specific group. You are not enrolled.</p>
+            <button class="btn-start-quiz" style="max-width:200px;margin:0 auto" (click)="exitQuiz()">← Back</button>
+          </div>
+        } @else {
+
+          <div class="start-header">
+            <h1 class="start-title">{{ quiz()?.quizName }}</h1>
+            @if (quiz()?.description) {
+              <p class="start-desc">{{ quiz()?.description }}</p>
+            }
+          </div>
+
+          <!-- Difficulty Filter -->
+          <div class="difficulty-section">
+            <label class="diff-label">Filter by Difficulty</label>
+            <div class="diff-pills">
+              @for (d of difficulties; track d) {
+                <button
+                  class="diff-pill"
+                  [class.active]="selectedDifficulty() === d"
+                  [attr.data-diff]="d"
+                  (click)="applyDifficultyFilter(d)"
+                >
+                  @if (d === 'Easy')   { <span class="diff-dot easy-dot"></span> }
+                  @if (d === 'Medium') { <span class="diff-dot medium-dot"></span> }
+                  @if (d === 'Hard')   { <span class="diff-dot hard-dot"></span> }
+                  {{ d }}
+                </button>
+              }
+            </div>
+            @if (questionStates().length === 0) {
+              <p class="diff-empty">No questions match this difficulty level.</p>
+            } @else {
+              <p class="diff-count">{{ questionStates().length }} question{{ questionStates().length !== 1 ? 's' : '' }} available</p>
+            }
+          </div>
+
+          <!-- Info Grid -->
+          <div class="quiz-info-grid">
+            <div class="info-card">
+              <div class="info-icon">📝</div>
+              <div class="info-value">{{ questionStates().length }}</div>
+              <div class="info-label">Questions</div>
+            </div>
+            @if (totalTimeLimit() > 0) {
+              <div class="info-card">
+                <div class="info-icon">⏱️</div>
+                <div class="info-value">{{ quiz()?.timeLimit }}</div>
+                <div class="info-label">Minutes</div>
+              </div>
+            }
+            <div class="info-card">
+              <div class="info-icon">🎯</div>
+              <div class="info-value">{{ quiz()?.passMark }}</div>
+              <div class="info-label">Pass Mark</div>
+            </div>
+            @if (quiz()?.difficultyLevel) {
+              <div class="info-card">
+                <div class="info-icon">📊</div>
+                <div class="info-value"
+                  [class.text-easy]="quiz()?.difficultyLevel === 'Easy'"
+                  [class.text-medium]="quiz()?.difficultyLevel === 'Medium'"
+                  [class.text-hard]="quiz()?.difficultyLevel === 'Hard'"
+                >{{ quiz()?.difficultyLevel }}</div>
+                <div class="info-label">Difficulty</div>
+              </div>
+            }
+          </div>
+
+          @if (quiz()?.deadline) {
+            <div class="deadline-info" [class.deadline-expired]="isQuizExpired()">
+              @if (isQuizExpired()) {
+                <span class="deadline-badge expired-badge">⏰ Expired</span>
+                <span class="deadline-text">This quiz has expired</span>
+              } @else {
+                <span class="deadline-badge active-badge">🟢 Active</span>
+                <span class="deadline-text">Closes on: {{ quiz()?.deadline | date:'dd MMM yyyy, hh:mm a' }}</span>
+              }
+            </div>
+          }
+
+          <button
+            class="btn-start-quiz"
+            (click)="startQuiz()"
+            [disabled]="questionStates().length === 0 || isQuizExpired()"
+          >
+            @if (isQuizExpired()) { This quiz has expired } @else { Start Quiz → }
+          </button>
+
+        }
+
+      </div>
+    </div>
+  }
+
+  <!-- Quiz Taking Interface -->
+  @if (hasStarted() && !loading() && !error()) {
+
+    <!-- Sticky Header -->
+    <div class="quiz-header">
+      <div class="container-fluid px-4">
+        <div class="row align-items-center">
+          <div class="col-md-4">
+            <h3 class="quiz-title">{{ quiz()?.quizName }}</h3>
+            @if (quiz()?.difficultyLevel) {
+              <span class="diff-badge-inline"
+                [class.easy]="quiz()?.difficultyLevel === 'Easy'"
+                [class.medium]="quiz()?.difficultyLevel === 'Medium'"
+                [class.hard]="quiz()?.difficultyLevel === 'Hard'"
+              >{{ quiz()?.difficultyLevel }}</span>
+            }
+          </div>
+          <div class="col-md-4 text-center">
+            @if (totalTimeLimit() > 0) {
+              <div class="quiz-timer" [ngClass]="timerClass()">
+                ⏱ {{ formattedTime() }}
+              </div>
+            }
+          </div>
+          <div class="col-md-4 text-end">
+            <button class="btn-exit" (click)="exitQuiz()">Exit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quiz-content">
+      <div class="container-fluid px-4">
+        <div class="row g-4">
+
+          <!-- Sidebar -->
+          <div class="col-md-3">
+            <div class="question-nav-panel">
+              <p class="nav-panel-title">Questions</p>
+
+              <div class="status-legend">
+                <div class="status-item">
+                  <div class="status-indicator attended"></div>
+                  <span>Answered</span>
+                </div>
+                <div class="status-item">
+                  <div class="status-indicator current"></div>
+                  <span>Current</span>
+                </div>
+                <div class="status-item">
+                  <div class="status-indicator pending"></div>
+                  <span>Pending</span>
+                </div>
+                <div class="status-item">
+                  <div class="status-indicator skipped"></div>
+                  <span>Skipped</span>
+                </div>
+              </div>
+
+              <div class="question-summary">
+                <div class="summary-item">
+                  <span class="sum-num answered">{{ attendedCount() }}</span>
+                  <span class="sum-lbl">Answered</span>
+                </div>
+                <div class="summary-item">
+                  <span class="sum-num pending">{{ pendingCount() }}</span>
+                  <span class="sum-lbl">Pending</span>
+                </div>
+                @if (skippedCount() > 0) {
+                  <div class="summary-item">
+                    <span class="sum-num skipped">{{ skippedCount() }}</span>
+                    <span class="sum-lbl">Skipped</span>
+                  </div>
+                }
+              </div>
+
+              <div class="question-grid">
+                @for (state of questionStates(); track state.question.questionId) {
+                  <button
+                    class="question-nav-button"
+                    [ngClass]="{
+                      'attended': state.status === 'attended',
+                      'current':  state.status === 'current',
+                      'pending':  state.status === 'pending',
+                      'skipped':  state.status === 'skipped'
+                    }"
+                    (click)="goToQuestion($index)"
+                    [title]="'Question ' + state.questionNumber"
+                  >{{ state.questionNumber }}</button>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Question Area -->
+          <div class="col-md-9">
+            @if (currentQuestion(); as current) {
+              <div class="question-display">
+
+                <!-- Question meta -->
+                <div class="question-header">
+                  <div class="q-meta">
+                    <span class="q-badge">Q{{ current.questionNumber }}</span>
+                    <span class="q-progress">{{ currentIndex() + 1 }} / {{ questionStates().length }}</span>
+                  </div>
+                  <span class="q-hint">Select one answer</span>
+                </div>
+
+                <!-- Question text -->
+                <div class="question-text">
+                  {{ current.question.questionText }}
+                </div>
+
+                <!-- Options -->
+                <div class="options-container">
+                  @for (option of availableOptions(); track option) {
+                    <div
+                      class="option-card"
+                      [class.selected]="current.selectedAnswer === option"
+                      (click)="selectAnswer(option)"
+                    >
+                      <span class="option-letter">{{ option }}</span>
+                      <span class="option-text">{{ getOptionText(option) }}</span>
+                      <span class="option-check">
+                        @if (current.selectedAnswer === option) { ✓ }
+                      </span>
+                    </div>
+                  }
+                </div>
+
+                <!-- Scratchpad / Working Space -->
+                <div class="scratchpad-section">
+                  <div class="scratchpad-header">
+                    <span class="scratchpad-label">✏️ Working Space</span>
+                    <button type="button" class="scratchpad-clear" (click)="clearScratchpad()" title="Clear">Clear</button>
+                  </div>
+                  <textarea
+                    class="scratchpad-area"
+                    [(ngModel)]="scratchpad"
+                    placeholder="Use this space for rough work, calculations, or notes..."
+                    rows="4"
+                  ></textarea>
+                </div>
+
+                <!-- Navigation -->
+                <div class="question-navigation">
+                  <button
+                    class="btn-nav btn-prev"
+                    (click)="previousQuestion()"
+                    [disabled]="currentIndex() === 0"
+                  >← Previous</button>
+
+                  <button
+                    class="btn-skip"
+                    (click)="skipQuestion()"
+                    title="Skip this question and come back later"
+                  >⏭ Skip</button>
+
+                  <button
+                    class="btn-submit-quiz"
+                    (click)="submitQuiz()"
+                    [disabled]="submitting()"
+                  >
+                    @if (submitting()) { Submitting... } @else { Submit Quiz }
+                  </button>
+
+                  <button
+                    class="btn-nav btn-next"
+                    (click)="nextQuestion()"
+                    [disabled]="currentIndex() === questionStates().length - 1"
+                  >Next →</button>
+                </div>
+
+              </div>
+            }
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

@@ -1,0 +1,115 @@
+<div class="lb-page">
+  <div class="lb-bg">
+    <div class="lb-orb lb-orb-1"></div>
+    <div class="lb-orb lb-orb-2"></div>
+  </div>
+
+  <div class="container lb-container">
+    <div class="lb-page-header">
+      <h1 class="lb-page-title">🏆 Leaderboard</h1>
+      <p class="lb-page-sub">Top performers across all quizzes</p>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="lb-filters mb-4">
+      <button class="cat-pill" [class.active]="selectedCat() === ''" (click)="filterCat('')">All Categories</button>
+      @for (c of categories(); track c.categoryId) {
+        <button class="cat-pill" [class.active]="selectedCat() === c.categoryId" (click)="filterCat(c.categoryId)">
+          {{ c.categoryName }}
+        </button>
+      }
+    </div>
+
+    @if (loading()) {
+      <div class="lb-loading">
+        <div class="loading-spinner"></div>
+        <p>Loading leaderboard...</p>
+      </div>
+    } @else {
+
+      <!-- Top 3 Podium -->
+      @if (entries().length >= 3) {
+        <div class="podium mb-5">
+          <!-- 2nd -->
+          <div class="podium-item podium-2">
+            <div class="podium-avatar">{{ entries()[1]?.name?.charAt(0) || entries()[1]?.username?.charAt(0) }}</div>
+            <div class="podium-name">{{ entries()[1]?.name || entries()[1]?.username }}</div>
+            <div class="podium-pct">{{ entries()[1]?.percentage | number:'1.0-0' }}%</div>
+            <div class="podium-block p2-block">
+              <span class="podium-medal">🥈</span>
+            </div>
+          </div>
+          <!-- 1st -->
+          <div class="podium-item podium-1">
+            <div class="podium-crown">👑</div>
+            <div class="podium-avatar avatar-1">{{ entries()[0]?.name?.charAt(0) || entries()[0]?.username?.charAt(0) }}</div>
+            <div class="podium-name">{{ entries()[0]?.name || entries()[0]?.username }}</div>
+            <div class="podium-pct pct-1">{{ entries()[0]?.percentage | number:'1.0-0' }}%</div>
+            <div class="podium-block p1-block">
+              <span class="podium-medal">🥇</span>
+            </div>
+          </div>
+          <!-- 3rd -->
+          <div class="podium-item podium-3">
+            <div class="podium-avatar">{{ entries()[2]?.name?.charAt(0) || entries()[2]?.username?.charAt(0) }}</div>
+            <div class="podium-name">{{ entries()[2]?.name || entries()[2]?.username }}</div>
+            <div class="podium-pct">{{ entries()[2]?.percentage | number:'1.0-0' }}%</div>
+            <div class="podium-block p3-block">
+              <span class="podium-medal">🥉</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Full Table -->
+      <div class="lb-table-wrap">
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Player</th>
+              <th>Quiz</th>
+              <th>Score</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (entries().length === 0) {
+              <tr>
+                <td colspan="5" class="lb-empty-row">No entries yet. Be the first to play!</td>
+              </tr>
+            }
+            @for (entry of entries(); track entry.userId + entry.quizId; let i = $index) {
+              <tr class="lb-row" [class.highlight]="i < 3">
+                <td>
+                  <span class="rank-badge" [class]="'rank-' + (i + 1)">
+                    @if (i === 0) { 🥇 }
+                    @else if (i === 1) { 🥈 }
+                    @else if (i === 2) { 🥉 }
+                    @else { #{{ i + 1 }} }
+                  </span>
+                </td>
+                <td>
+                  <div class="player-cell">
+                    <div class="player-mini-avatar">{{ entry.name?.charAt(0) || entry.username.charAt(0) }}</div>
+                    <div>
+                      <div class="player-name">{{ entry.name || entry.username }}</div>
+                      <div class="player-username">{{ entry.username }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="quiz-name-cell">{{ entry.quizName }}</span></td>
+                <td>
+                  <span class="score-cell" [class.score-high]="entry.percentage >= 80" [class.score-mid]="entry.percentage >= 50 && entry.percentage < 80" [class.score-low]="entry.percentage < 50">
+                    {{ entry.percentage | number:'1.0-0' }}%
+                  </span>
+                </td>
+                <td><span class="date-cell">{{ entry.createdAt | date:'MMM d' }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

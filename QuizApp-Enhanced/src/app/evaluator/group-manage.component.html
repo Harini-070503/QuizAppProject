@@ -1,0 +1,163 @@
+﻿<div class="eval-page">
+  <div class="container eval-container">
+
+    <div class="eval-header">
+      <div>
+        <a routerLink="/evaluator/dashboard" class="back-link">← Back to Dashboard</a>
+        <h1 class="eval-title">👥 Manage Groups</h1>
+        <p class="eval-sub">Create groups and restrict quizzes to specific students</p>
+      </div>
+    </div>
+
+    @if (error()) { <div class="alert alert-danger mb-3">{{ error() }}</div> }
+    @if (success()) { <div class="alert alert-success mb-3">✅ {{ success() }}</div> }
+
+    <div class="group-layout">
+
+      <!-- Left: Groups list + create -->
+      <div class="group-left">
+        <div class="eval-table-card">
+          <h3 class="eval-section-title">Create New Group</h3>
+          <div class="create-group-form">
+            <input type="text" class="grp-input" [(ngModel)]="newGroupName" placeholder="Group name *" />
+            <input type="text" class="grp-input" [(ngModel)]="newGroupDesc" placeholder="Description (optional)" />
+            <button class="btn-create-grp" (click)="createGroup()" [disabled]="creating() || !newGroupName.trim()">
+              @if (creating()) { Creating... } @else { + Create Group }
+            </button>
+          </div>
+        </div>
+
+        <div class="eval-table-card mt-3">
+          <h3 class="eval-section-title">My Groups ({{ groups().length }})</h3>
+          @if (loading()) {
+            <p class="text-muted">Loading...</p>
+          } @else if (groups().length === 0) {
+            <p class="eval-empty-sm">No groups yet. Create one above.</p>
+          } @else {
+            <div class="group-list">
+              @for (g of groups(); track g.groupId) {
+                <div class="group-item" [class.selected]="selectedGroup()?.groupId === g.groupId" (click)="selectGroup(g)">
+                  <div class="group-item-info">
+                    <span class="group-item-name">{{ g.groupName }}</span>
+                    <span class="group-item-count">{{ g.memberCount }} member(s)</span>
+                  </div>
+                  <button class="btn-del-grp" (click)="$event.stopPropagation(); deleteGroup(g.groupId)" title="Delete">🗑️</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Right: Selected group detail -->
+      <div class="group-right">
+        @if (selectedGroup(); as g) {
+          <div class="eval-table-card">
+            <h3 class="eval-section-title">👥 {{ g.groupName }} — Members</h3>
+
+            <!-- Searchable user dropdown -->
+            <div class="add-member-row">
+              <div class="user-search-wrap">
+                <input
+                  type="text"
+                  class="grp-input"
+                  [(ngModel)]="userSearch"
+                  (input)="onUserSearchInput()"
+                  (focus)="onUserSearchInput()"
+                  placeholder="Search student by username or email..."
+                  autocomplete="off"
+                />
+                @if (showUserDropdown()) {
+                  <div class="user-dropdown">
+                    @if (userResults().length === 0) {
+                      <div class="user-dropdown-empty">No students found</div>
+                    } @else {
+                      @for (u of userResults(); track u.userId) {
+                        <div class="user-dropdown-item" (click)="selectUser(u)">
+                          <span class="user-avatar-sm">{{ u.username.charAt(0).toUpperCase() }}</span>
+                          <div class="user-info-sm">
+                            <span class="user-name-sm">{{ u.username }}</span>
+                            <span class="user-email-sm">{{ u.email }}</span>
+                          </div>
+                        </div>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+              <button class="btn-add-member" (click)="addMember()" [disabled]="addingMember() || !userSearch.trim()">
+                @if (addingMember()) { Adding... } @else { + Add }
+              </button>
+            </div>
+            @if (memberError()) { <p class="member-err">⚠️ {{ memberError() }}</p> }
+
+            <!-- Members table -->
+            @if (g.members.length === 0) {
+              <p class="eval-empty-sm mt-3">No members yet. Search and add students above.</p>
+            } @else {
+              <div class="table-responsive mt-3">
+                <table class="table eval-table">
+                  <thead>
+                    <tr><th>Username</th><th>Email</th><th>Added</th><th></th></tr>
+                  </thead>
+                  <tbody>
+                    @for (m of g.members; track m.userId) {
+                      <tr>
+                        <td><strong>{{ m.username }}</strong></td>
+                        <td class="text-muted">{{ m.email }}</td>
+                        <td class="date-cell">{{ m.addedAt | date:'dd MMM yyyy' }}</td>
+                        <td>
+                          <button class="btn-sm-eval btn-del-sm" (click)="removeMember(m.userId)">Remove</button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+
+          <!-- Assign quizzes to this group -->
+          <div class="eval-table-card mt-3">
+            <h3 class="eval-section-title">📚 Assign Quizzes to "{{ g.groupName }}"</h3>
+            @if (myQuizzes().length === 0) {
+              <p class="eval-empty-sm">No quizzes yet. <a routerLink="/admin/quiz/create">Create one →</a></p>
+            } @else {
+              <div class="quiz-assign-list">
+                @for (quiz of myQuizzes(); track quiz.quizId) {
+                  <div class="quiz-assign-row">
+                    <div class="quiz-assign-info">
+                      <span class="quiz-assign-name">{{ quiz.quizName }}</span>
+                      @if (quiz.groupId) {
+                        <span class="grp-badge">🔒 {{ getGroupName(quiz.groupId) }}</span>
+                      } @else {
+                        <span class="open-badge">🌐 Open</span>
+                      }
+                    </div>
+                    <div class="quiz-assign-actions">
+                      @if (quiz.groupId !== g.groupId) {
+                        <button class="btn-sm-eval btn-assign" (click)="assignQuiz(quiz.quizId, g.groupId)">
+                          Assign to this group
+                        </button>
+                      } @else {
+                        <button class="btn-sm-eval btn-unassign" (click)="unassignQuiz(quiz.quizId)">
+                          Make Open
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+        } @else {
+          <div class="eval-table-card group-placeholder">
+            <p>← Select a group to manage its members and assigned quizzes</p>
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+</div>

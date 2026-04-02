@@ -1,0 +1,104 @@
+<div class="eval-page">
+  <div class="container eval-container">
+
+    @if (loading()) {
+      <div class="eval-loading">Loading submission...</div>
+    } @else if (submission(); as s) {
+
+      <!-- Header -->
+      <div class="eval-header">
+        <div>
+          <a [routerLink]="['/evaluator/quiz', s.quizId, 'submissions']" class="back-link">← Back to Submissions</a>
+          <h1 class="eval-title">📋 Submission Review</h1>
+          <p class="eval-sub">
+            Student: <strong>{{ s.username }}</strong> &nbsp;·&nbsp;
+            Quiz: <strong>{{ s.quizName }}</strong> &nbsp;·&nbsp;
+            Submitted: {{ s.submittedAt | date:'dd MMM yyyy, hh:mm a' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Score Summary -->
+      <div class="score-summary-card">
+        <div class="score-item">
+          <span class="score-label">Total Score</span>
+          <span class="score-big">{{ editedTotal() }} / {{ s.maxMark }}</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label">Percentage</span>
+          <span class="score-big pct-color">
+            {{ s.maxMark > 0 ? (editedTotal() / s.maxMark * 100 | number:'1.0-0') : 0 }}%
+          </span>
+        </div>
+        <div class="score-actions">
+          <button class="btn-save-scores" (click)="saveScores()" [disabled]="saving()">
+            @if (saving()) { Saving... } @else { 💾 Save Scores }
+          </button>
+          <button class="btn-gen-cert" (click)="generateCertificate()">🎓 Generate Certificate</button>
+        </div>
+        @if (saveMsg()) {
+          <p class="save-msg">{{ saveMsg() }}</p>
+        }
+      </div>
+
+      <!-- Question Review -->
+      <div class="answers-section">
+        <h3 class="eval-section-title">Question-by-Question Review</h3>
+        @for (ans of s.answers; track ans.questionId; let i = $index) {
+          <div class="answer-card" [class.ans-correct]="isAnswerCorrect(ans)" [class.ans-wrong]="!isAnswerCorrect(ans)">
+            <div class="ans-header">
+              <span class="ans-num">Q{{ i + 1 }}</span>
+              <p class="ans-question">{{ ans.questionText }}</p>
+              @if (isAnswerCorrect(ans)) {
+                <span class="ans-badge correct-badge">✓ Correct</span>
+              } @else {
+                <span class="ans-badge wrong-badge">✗ Wrong</span>
+              }
+            </div>
+            <div class="ans-body">
+              <div class="ans-row">
+                <span class="ans-lbl">Student answered:</span>
+                <span class="ans-val" [class.correct-text]="isAnswerCorrect(ans)" [class.wrong-text]="!isAnswerCorrect(ans)">
+                  {{ ans.chosenOption || 'Skipped' }}
+                </span>
+              </div>
+              <div class="ans-row">
+                <span class="ans-lbl">Correct answer:</span>
+                <span class="ans-val correct-text">{{ ans.correctOption }}</span>
+              </div>
+              <div class="ans-row marks-row">
+                <span class="ans-lbl">Marks awarded:</span>
+                <input
+                  type="number"
+                  class="marks-input"
+                  [value]="editedScores()[ans.questionId] || 0"
+                  (input)="setScore(ans.questionId, +$any($event.target).value)"
+                  [min]="0"
+                  [max]="ans.maxMarks"
+                />
+                <span class="marks-max">/ {{ ans.maxMarks }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Certificate Panel -->
+      @if (showCert()) {
+        <div class="cert-panel">
+          <div class="cert-panel-header">
+            <h3 class="cert-panel-title">🎓 Certificate Preview</h3>
+            <button class="cert-close" (click)="showCert.set(false)">✕</button>
+          </div>
+          <div class="cert-canvas-wrap">
+            <canvas #certCanvas class="cert-canvas"></canvas>
+          </div>
+          <div class="cert-panel-actions">
+            <button class="btn-download-cert" (click)="downloadCert()">⬇ Download Certificate</button>
+          </div>
+        </div>
+      }
+
+    }
+  </div>
+</div>

@@ -1,0 +1,63 @@
+<div class="cat-page">
+  <div class="cat-bg">
+    <div class="catb catb-1"></div>
+    <div class="catb catb-2"></div>
+  </div>
+  <div class="container cat-container">
+    <div class="cat-header">
+      <a routerLink="/dashboard" class="back-link">← Back</a>
+      <h1 class="cat-title">Manage Categories</h1>
+    </div>
+
+    @if (error()) { <div class="alert-err">⚠️ {{ error() }}</div> }
+    @if (success()) { <div class="alert-ok">✅ {{ success() }}</div> }
+
+    <div class="cat-grid">
+      <!-- Add/Edit Form -->
+      <div class="cat-card">
+        <h3 class="card-title">{{ editId() ? 'Edit Category' : 'Add Category' }}</h3>
+        <div class="field-group">
+          <label class="field-label">Category Name</label>
+          <input type="text" class="field-input" [(ngModel)]="catName" placeholder="e.g. Science, History..." />
+        </div>
+        <div class="form-btns">
+          @if (editId()) {
+            <button class="btn-cancel-edit" (click)="cancelEdit()">Cancel</button>
+            <button class="btn-save" (click)="onUpdate()" [disabled]="saving()">
+              @if (saving()) { <span class="spinner"></span> } @else { Update }
+            </button>
+          } @else {
+            <button class="btn-save" (click)="onCreate()" [disabled]="saving()">
+              @if (saving()) { <span class="spinner"></span> Saving... } @else { + Add Category }
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Category List -->
+      <div class="cat-card">
+        <h3 class="card-title">All Categories ({{ categories().length }})</h3>
+        @if (loading()) {
+          <div class="cat-loading">
+            <div class="mini-spinner"></div>
+          </div>
+        } @else if (categories().length === 0) {
+          <div class="cat-empty">No categories yet. Create one!</div>
+        } @else {
+          <div class="cat-list">
+            @for (c of categories(); track c.categoryId) {
+              <div class="cat-item">
+                <div class="cat-item-icon">🏷️</div>
+                <span class="cat-item-name">{{ c.categoryName }}</span>
+                <div class="cat-item-actions">
+                  <button class="btn-edit-cat" (click)="startEdit(c)">✏️</button>
+                  <button class="btn-delete-cat" (click)="onDelete(c.categoryId)">🗑️</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

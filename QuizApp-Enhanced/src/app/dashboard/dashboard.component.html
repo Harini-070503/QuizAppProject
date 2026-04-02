@@ -1,0 +1,411 @@
+﻿<div class="dashboard-page">
+  <div class="dash-bg">
+    <div class="dash-orb orb-1"></div>
+    <div class="dash-orb orb-2"></div>
+  </div>
+
+  <div class="container py-5" style="position:relative;z-index:1;">
+
+    <!-- Welcome Header -->
+    <div class="welcome-bar mb-5">
+      <div>
+        <h1 class="welcome-title">
+          Hey, <span class="gradient-text">{{ auth.currentUser()?.username }}</span> 👋
+        </h1>
+        <p class="welcome-sub">
+          @if (auth.isCreator()) { Ready to manage your quizzes? }
+          @else { Ready to challenge yourself today? }
+        </p>
+      </div>
+      @if (auth.isCreator()) {
+        <div class="creator-actions">
+          <a routerLink="/admin/categories" class="btn-create btn-secondary">
+            <span>🏷️</span> Manage Categories
+          </a>
+          <a routerLink="/admin/quiz/create" class="btn-create">
+            <span>+</span> New Quiz
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- ==============================
+         CREATOR LAYOUT
+         ============================== -->
+    @if (auth.isCreator()) {
+
+      <!-- Creator Stats -->
+      <div class="stats-row mb-5">
+        <div class="stat-card">
+          <div class="stat-icon">📚</div>
+          <div class="stat-info">
+            <span class="stat-val">{{ myQuizzes().length }}</span>
+            <span class="stat-lbl">My Quizzes</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🏷️</div>
+          <div class="stat-info">
+            <span class="stat-val">{{ categories().length }}</span>
+            <span class="stat-lbl">Categories</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">❓</div>
+          <div class="stat-info">
+            <span class="stat-val">{{ myQuizzes().length }}</span>
+            <span class="stat-lbl">My Active Quizzes</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">👤</div>
+          <div class="stat-info">
+            <span class="stat-val">Creator</span>
+            <span class="stat-lbl">Your Role</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete confirmation modal -->
+      @if (deleteConfirmId()) {
+        <div class="modal-overlay" (click)="cancelDelete()">
+          <div class="modal-box" (click)="$event.stopPropagation()">
+            <h5>Delete Quiz?</h5>
+            <p>This will permanently delete the quiz and all its questions.</p>
+            @if (deleteError()) {
+              <div class="alert alert-danger py-2 mb-3">{{ deleteError() }}</div>
+            }
+            <div class="d-flex gap-2 justify-content-end">
+              <button class="btn btn-secondary btn-sm" (click)="cancelDelete()">Cancel</button>
+              <button class="btn btn-danger btn-sm" (click)="deleteQuiz(deleteConfirmId()!)">Delete</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- My Quizzes Table -->
+      <div class="creator-section glass-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="section-title mb-0">My Quizzes</h4>
+          <a routerLink="/admin/quiz/create" class="btn btn-primary btn-sm px-3">+ New Quiz</a>
+        </div>
+
+        @if (loading()) {
+          <div class="text-center py-4">
+            <div class="quiz-spinner"></div>
+            <p class="mt-3 text-muted-quiz">Loading quizzes...</p>
+          </div>
+        } @else if (myQuizzes().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">🎯</div>
+            <p>You haven't created any quizzes yet.</p>
+            <a routerLink="/admin/quiz/create" class="btn btn-primary mt-2">Create Your First Quiz</a>
+          </div>
+        } @else {
+          <div class="table-responsive">
+            <table class="table creator-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Quiz Name</th>
+                  <th>Category</th>
+                  <th>Difficulty</th>
+                  <th>Questions</th>
+                  <th>Pass Mark</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (quiz of myQuizzes(); track quiz.quizId; let i = $index) {
+                  <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>
+                      <div class="quiz-name-cell">
+                        <strong>{{ quiz.quizName }}</strong>
+                        @if (quiz.description) {
+                          <small class="text-muted-quiz d-block">{{ quiz.description | slice:0:60 }}{{ quiz.description.length > 60 ? '...' : '' }}</small>
+                        }
+                      </div>
+                    </td>
+                    <td>
+                      <span class="cat-badge-sm">{{ quiz.category?.categoryName || '—' }}</span>
+                    </td>
+                    <td>
+                      <span class="diff-badge" [class]="'diff-' + (quiz.difficultyLevel?.toLowerCase() || 'easy')">
+                        {{ quiz.difficultyLevel || 'Easy' }}
+                      </span>
+                    </td>
+                    <td class="text-center">{{ quiz.totalQuestion }}</td>
+                    <td class="text-center">{{ quiz.passMark }}</td>
+                    <td>
+                      <div class="action-btns">
+                        <button class="btn btn-sm btn-outline-info" title="Manage Questions"
+                          (click)="manageQuestions(quiz.quizId)">
+                          ❓ Questions
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" title="Edit Quiz"
+                          (click)="editQuiz(quiz.quizId)">
+                          ✏️ Edit
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" title="Delete Quiz"
+                          (click)="confirmDelete(quiz.quizId)">
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+    }
+
+    <!-- ==============================
+         TAKER LAYOUT
+         ============================== -->
+    @if (!auth.isCreator()) {
+
+      <!-- Taker Stats -->
+      <div class="stats-row mb-5">
+        <div class="stat-card">
+          <div class="stat-icon">📚</div>
+          <div class="stat-info">
+            <span class="stat-val">{{ quizzes().length }}</span>
+            <span class="stat-lbl">Available Quizzes</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🏷️</div>
+          <div class="stat-info">
+            <span class="stat-val">{{ categories().length }}</span>
+            <span class="stat-lbl">Categories</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🏆</div>
+          <div class="stat-info">
+            <span class="stat-val">{{ leaderboard().length }}</span>
+            <span class="stat-lbl">Top Players</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">👤</div>
+          <div class="stat-info">
+            <span class="stat-val">{{ auth.currentUser()?.role }}</span>
+            <span class="stat-lbl">Your Role</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+
+          <!-- Category + Difficulty Filter -->
+          <div class="section-header mb-3">
+            <h3 class="section-title">Browse Quizzes</h3>
+            <div class="filter-row">
+              <div class="cat-dropdown-wrap">
+                <select class="cat-dropdown" [value]="selectedCat()" (change)="onCategoryChange($any($event.target).value)">
+                  <option value="">All Categories</option>
+                  @for (c of categories(); track c.categoryId) {
+                    <option [value]="c.categoryId">{{ c.categoryName }}</option>
+                  }
+                </select>
+                <span class="cat-dropdown-icon">▾</span>
+              </div>
+              <div class="cat-dropdown-wrap">
+                <select class="cat-dropdown diff-dropdown" [value]="selectedDiff()" (change)="onDifficultyChange($any($event.target).value)">
+                  <option value="">All Levels</option>
+                  <option value="Easy">🟢 Easy</option>
+                  <option value="Medium">🟡 Medium</option>
+                  <option value="Hard">🔴 Hard</option>
+                </select>
+                <span class="cat-dropdown-icon">▾</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quiz Grid -->
+          @if (loading()) {
+            <div class="loading-grid">
+              @for (s of [1,2,3,4]; track s) {
+                <div class="quiz-skeleton"></div>
+              }
+            </div>
+          } @else if (filteredQuizzes().length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">🎯</div>
+              <p>No quizzes found. Check back later!</p>
+            </div>
+          } @else {
+            <div class="quiz-grid">
+              @for (quiz of paginatedQuizzes(); track quiz.quizId + $index) {
+                <div class="quiz-card" [class.quiz-expired]="quiz.isExpired">
+                  <div class="quiz-card-top">
+                    <span class="quiz-cat-badge">{{ quiz.category?.categoryName || 'General' }}</span>
+                    <span class="diff-badge" [class]="'diff-' + (quiz.difficultyLevel?.toLowerCase() || 'easy')">
+                      {{ quiz.difficultyLevel || 'Easy' }}
+                    </span>
+                    @if (quiz.isExpired) {
+                      <span class="quiz-expired-badge">Expired</span>
+                    } @else if (quiz.deadline) {
+                      <span class="quiz-active-badge">Active</span>
+                    }
+                  </div>
+                  <h4 class="quiz-name">{{ quiz.quizName }}</h4>
+                  <p class="quiz-desc">{{ quiz.description || 'Test your knowledge and challenge yourself!' }}</p>
+                  <div class="quiz-meta">
+                    <span class="meta-item">❓ {{ quiz.totalQuestion }} questions</span>
+                    <span class="meta-item">✅ Pass: {{ quiz.passMark }}</span>
+                    @if (quiz.timeLimit) {
+                      <span class="meta-item">⏱ {{ quiz.timeLimit }}m</span>
+                    }
+                    @if (quiz.deadline && !quiz.isExpired) {
+                      <span class="meta-item deadline-meta">🗓 Closes: {{ quiz.deadline | date:'dd MMM' }}</span>
+                    }
+                  </div>
+                  @if (quiz.isExpired) {
+                    <div class="btn-play btn-play-expired">This quiz has expired</div>
+                  } @else {
+                    <a [routerLink]="['/quiz', quiz.quizId]" class="btn-play">
+                      Play Now <span class="play-arrow">→</span>
+                    </a>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Pagination -->
+            @if (totalPages() > 1) {
+              <div class="quiz-pagination">
+                <button class="page-btn" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1">‹</button>
+                @for (p of pageNumbers(); track p) {
+                  <button class="page-btn" [class.page-active]="currentPage() === p" (click)="goToPage(p)">{{ p }}</button>
+                }
+                <button class="page-btn" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()">›</button>
+                <span class="page-info">{{ currentPage() }} / {{ totalPages() }}</span>
+              </div>
+            }
+          }
+
+          <!-- Evaluator Quizzes Section -->
+          @if (evaluatorQuizzes().length > 0) {
+            <div class="eval-quiz-section mt-4">
+              <div class="section-header mb-3">
+                <h3 class="section-title">📋 Evaluator Assigned Tests</h3>
+                <span class="eval-quiz-badge">{{ evaluatorQuizzes().length }} test(s)</span>
+              </div>
+              <div class="quiz-grid">
+                @for (quiz of evaluatorQuizzes(); track quiz.quizId + $index) {
+                  <div class="quiz-card eval-quiz-card" [class.quiz-expired]="quiz.isExpired">
+                    <div class="quiz-card-top">
+                      <span class="eval-cat-badge">📋 Evaluator</span>
+                      <span class="diff-badge" [class]="'diff-' + (quiz.difficultyLevel?.toLowerCase() || 'easy')">
+                        {{ quiz.difficultyLevel || 'Easy' }}
+                      </span>
+                      @if (quiz.isExpired) {
+                        <span class="quiz-expired-badge">Expired</span>
+                      } @else if (quiz.deadline) {
+                        <span class="quiz-active-badge">Active</span>
+                      }
+                    </div>
+                    <h4 class="quiz-name">{{ quiz.quizName }}</h4>
+                    <p class="quiz-desc">{{ quiz.description || 'Assigned test — complete before the deadline.' }}</p>
+                    <div class="quiz-meta">
+                      <span class="meta-item">❓ {{ quiz.totalQuestion }} questions</span>
+                      @if (quiz.deadline && !quiz.isExpired) {
+                        <span class="meta-item deadline-meta">🗓 Due: {{ quiz.deadline | date:'dd MMM' }}</span>
+                      }
+                    </div>
+                    @if (quiz.isExpired) {
+                      <div class="btn-play btn-play-expired">This test has expired</div>
+                    } @else {
+                      <a [routerLink]="['/quiz', quiz.quizId]" class="btn-play btn-play-eval">
+                        Start Test <span class="play-arrow">→</span>
+                      </a>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Guidelines -->
+          <div class="guidelines-card mt-4">
+            <h4 class="guide-title">📋 Quiz Guidelines</h4>
+            <div class="guide-list">
+              <div class="guide-item">
+                <span class="guide-icon">⏱️</span>
+                <div>
+                  <strong>Time Limit</strong>
+                  <p>Each question has a time limit. Answer before it expires or it's marked as skipped.</p>
+                </div>
+              </div>
+              <div class="guide-item">
+                <span class="guide-icon">🔄</span>
+                <div>
+                  <strong>No Refresh</strong>
+                  <p>Refreshing during a quiz will reset your progress. Stay focused!</p>
+                </div>
+              </div>
+              <div class="guide-item">
+                <span class="guide-icon">1️⃣</span>
+                <div>
+                  <strong>One Attempt Rule</strong>
+                  <p>Attempts are tracked. Play fair and give it your best shot!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+          <!-- Mini Leaderboard -->
+          <div class="leaderboard-card mb-4">
+            <div class="lb-header">
+              <h4 class="lb-title">🏆 Leaderboard</h4>
+              <a routerLink="/leaderboard" class="lb-more">View all →</a>
+            </div>
+            @if (leaderboard().length === 0) {
+              <div class="lb-empty">No scores yet. Be the first!</div>
+            } @else {
+              <div class="lb-list">
+                @for (entry of leaderboard().slice(0, 5); track entry.userId + entry.quizId; let i = $index) {
+                  <div class="lb-item">
+                    <span class="lb-rank" [class]="'rank-' + (i + 1)">
+                      @if (i === 0) { 🥇 }
+                      @else if (i === 1) { 🥈 }
+                      @else if (i === 2) { 🥉 }
+                      @else { {{ i + 1 }} }
+                    </span>
+                    <div class="lb-info">
+                      <span class="lb-name">{{ entry.name || entry.username }}</span>
+                      <span class="lb-quiz">{{ entry.quizName }}</span>
+                    </div>
+                    <span class="lb-pct">{{ entry.percentage | number:'1.0-0' }}%</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- User Info Card -->
+          <div class="user-info-card">
+            <div class="user-avatar">{{ auth.currentUser()?.username?.charAt(0)?.toUpperCase() }}</div>
+            <h4 class="user-name">{{ auth.currentUser()?.username }}</h4>
+            <p class="user-email">{{ auth.currentUser()?.email }}</p>
+            <div class="user-role-badge">{{ auth.currentUser()?.role }}</div>
+            <a routerLink="/profile" class="btn-profile">Edit Profile</a>
+          </div>
+        </div>
+      </div>
+
+    }
+
+  </div>
+</div>

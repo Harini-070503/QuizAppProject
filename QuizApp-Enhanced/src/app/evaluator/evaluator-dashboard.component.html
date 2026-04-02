@@ -1,0 +1,103 @@
+<div class="eval-page">
+  <div class="container eval-container">
+
+    <!-- Header -->
+    <div class="eval-header">
+      <div>
+        <h1 class="eval-title">📋 Evaluator Dashboard</h1>
+        <p class="eval-sub">Welcome, <strong>{{ auth.currentUser()?.username }}</strong></p>
+      </div>
+      <div class="eval-actions">
+        <a routerLink="/evaluator/groups" class="btn-eval-action btn-secondary-eval">👥 Manage Groups</a>
+        <a routerLink="/admin/quiz/create" class="btn-eval-action btn-primary-eval">+ Create Quiz</a>
+        <a routerLink="/admin/categories" class="btn-eval-action btn-secondary-eval">🏷️ Categories</a>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="eval-stats">
+      <div class="eval-stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-val">{{ myQuizzes().length }}</div>
+        <div class="stat-lbl">Total Quizzes</div>
+      </div>
+      <div class="eval-stat-card active-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-val">{{ activeQuizzes().length }}</div>
+        <div class="stat-lbl">Active</div>
+      </div>
+      <div class="eval-stat-card expired-card">
+        <div class="stat-icon">⏰</div>
+        <div class="stat-val">{{ expiredQuizzes().length }}</div>
+        <div class="stat-lbl">Expired</div>
+      </div>
+    </div>
+
+    <!-- Quiz Table -->
+    @if (loading()) {
+      <div class="eval-loading">Loading quizzes...</div>
+    } @else if (myQuizzes().length === 0) {
+      <div class="eval-empty">
+        <p>No quizzes yet. <a routerLink="/admin/quiz/create">Create your first quiz →</a></p>
+      </div>
+    } @else {
+      <div class="eval-table-card">
+        <h3 class="eval-section-title">My Quizzes</h3>
+        <div class="table-responsive">
+          <table class="table eval-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Quiz Name</th>
+                <th>Difficulty</th>
+                <th>Questions</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (quiz of myQuizzes(); track quiz.quizId; let i = $index) {
+                <tr>
+                  <td>{{ i + 1 }}</td>
+                  <td class="quiz-name-cell"><strong>{{ quiz.quizName }}</strong></td>
+                  <td>
+                    <span class="diff-badge" [class]="'diff-' + (quiz.difficultyLevel?.toLowerCase() || 'easy')">
+                      {{ quiz.difficultyLevel || 'Easy' }}
+                    </span>
+                  </td>
+                  <td class="text-center">{{ quiz.totalQuestion }}</td>
+                  <td class="deadline-cell">
+                    @if (quiz.deadline) {
+                      {{ quiz.deadline | date:'dd MMM yyyy, hh:mm a' }}
+                    } @else {
+                      <span class="no-deadline">No deadline</span>
+                    }
+                  </td>
+                  <td>
+                    @if (isExpired(quiz)) {
+                      <span class="status-badge expired-badge">Expired</span>
+                    } @else {
+                      <span class="status-badge active-badge">Active</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="eval-row-actions">
+                      <a [routerLink]="['/evaluator/quiz', quiz.quizId, 'submissions']" class="btn-sm-eval btn-view">
+                        👁 Submissions
+                      </a>
+                      <a [routerLink]="['/admin/quiz/edit', quiz.quizId]" class="btn-sm-eval btn-edit">
+                        ✏️ Edit
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

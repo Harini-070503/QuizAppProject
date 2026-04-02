@@ -1,0 +1,172 @@
+/* ============================================
+   QUIZZAP — Global Styles (Minimal & Clean)
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css');
+@import './styles/theme.css';
+
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--brand-muted); }
+
+/* ===== TYPOGRAPHY ===== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+a { transition: color 0.2s ease; }
+
+::selection { background: var(--brand-soft); color: var(--brand); }
+
+/* ===== UTILITY ===== */
+.accent-text {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.surface-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 2px 12px var(--shadow);
+}
+
+.text-muted-quiz { color: var(--text-3); }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.animate-fade-in  { animation: fadeIn  0.35s ease forwards; }
+.animate-scale-in { animation: scaleIn 0.3s  ease forwards; }
+
+/* ===== SPINNER ===== */
+.quiz-spinner {
+  display: inline-block;
+  width: 36px; height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+/* ===== BOOTSTRAP MODAL OVERRIDES ===== */
+.modal-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  color: var(--text);
+  box-shadow: 0 8px 40px var(--shadow);
+}
+.modal-header { border-bottom: 1px solid var(--border); }
+.modal-footer { border-top:    1px solid var(--border); }
+.btn-close { filter: none; opacity: 0.5; }
+.dark-theme .btn-close { filter: invert(1); }
+
+/* ===== AUTOFILL ===== */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px var(--surface) inset;
+  -webkit-text-fill-color: var(--text);
+  border-color: var(--brand-muted) !important;
+}
+
+/* ===== DARK THEME body background ===== */
+body.dark-theme {
+  background-color: var(--dark-bg) !important;
+  color: var(--dark-text) !important;
+}
+
+/* ===== GRADIENT TEXT (kept for brand moments) ===== */
+.gradient-text {
+  background: linear-gradient(135deg, #7b93fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 576px) {
+  .container { padding-left: 16px; padding-right: 16px; }
+}
+
+/* ===== DARK MODE TABLE FIX ===== */
+.dark-theme .creator-table,
+.dark-theme .creator-table tbody td,
+.dark-theme .creator-table tbody tr {
+  background: var(--surface) !important;
+  color: #e8eaf2 !important;
+  border-color: var(--border) !important;
+}
+
+.dark-theme .creator-table thead {
+  background: var(--surface-2) !important;
+}
+
+.dark-theme .creator-table thead th {
+  color: #9aa0b8 !important;
+  border-color: var(--border) !important;
+  background: var(--surface-2) !important;
+}
+
+.dark-theme .creator-table tbody tr:hover {
+  background: var(--surface-2) !important;
+}
+
+.dark-theme .quiz-name-cell strong,
+.dark-theme .quiz-name-cell {
+  color: #e8eaf2 !important;
+}
+
+.dark-theme .glass-card {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+.dark-theme .section-title {
+  color: #e8eaf2 !important;
+}
+
+.dark-theme .q-num,
+.dark-theme .q-text {
+  color: #e8eaf2 !important;
+}
+
+/* ===== ATTEMPT RESULT DARK MODE ===== */
+.dark-theme .fb-question-text      { color: #e8eaf2 !important; }
+.dark-theme .opt-neutral .opt-text { color: #c4c8dc !important; }
+.dark-theme .opt-neutral .opt-letter { background: #3a3f55 !important; color: #c4c8dc !important; }
+.dark-theme .fb-option.opt-neutral { background: var(--surface-2) !important; border-color: var(--border) !important; }
+.dark-theme .opt-correct .opt-text { color: #6dd4a0 !important; }
+.dark-theme .opt-wrong .opt-text   { color: #f08080 !important; }
+.dark-theme .result-headline       { color: #e8eaf2 !important; }
+.dark-theme .score-pct             { color: #e8eaf2 !important; }
+.dark-theme .feedback-title        { color: #e8eaf2 !important; }

@@ -1,0 +1,220 @@
+<div class="create-page">
+  <div class="create-bg">
+    <div class="corb corb-1"></div>
+    <div class="corb corb-2"></div>
+  </div>
+  <div class="container create-container">
+    <div class="create-header">
+      <a routerLink="/dashboard" class="back-link">← Back</a>
+      <h1 class="create-title">{{ isEdit() ? 'Edit Quiz' : 'Create Quiz' }}</h1>
+    </div>
+
+    @if (error()) { <div class="alert-err">⚠️ {{ error() }}</div> }
+    @if (success()) { <div class="alert-ok">✅ {{ success() }}</div> }
+
+    <div class="create-grid">
+      <!-- Quiz Details -->
+      <div class="create-card">
+        <h3 class="card-title">Quiz Details</h3>
+        <div class="field-group">
+          <label class="field-label">Quiz Name *</label>
+          <input type="text" class="field-input" [(ngModel)]="quizName" placeholder="Enter quiz name" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Description</label>
+          <textarea class="field-input field-textarea" [(ngModel)]="description" placeholder="Quiz description..." rows="3"></textarea>
+        </div>
+        <div class="two-col">
+          <div class="field-group">
+            <label class="field-label">Category *</label>
+            <div class="cat-row">
+              <select class="field-input field-select" [(ngModel)]="categoryId">
+                <option value="">Select category</option>
+                @for (c of categories(); track c.categoryId) {
+                  <option [value]="c.categoryId">{{ c.categoryName }}</option>
+                }
+              </select>
+              <button type="button" class="btn-new-cat" (click)="openNewCatPanel()" title="Create new category">+ New</button>
+            </div>
+
+            <!-- Inline new category panel -->
+            @if (showNewCatPanel()) {
+              <div class="new-cat-panel">
+                <p class="new-cat-title">New Category</p>
+                @if (newCatError()) { <div class="new-cat-err">{{ newCatError() }}</div> }
+                <input type="text" class="field-input" [(ngModel)]="newCatName" placeholder="Category name..." />
+                <div class="new-cat-actions">
+                  <button type="button" class="btn-cancel-sm" (click)="cancelNewCat()">Cancel</button>
+                  <button type="button" class="btn-save-sm" (click)="saveNewCategory()" [disabled]="newCatSaving()">
+                    @if (newCatSaving()) { Saving... } @else { Save }
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+          <div class="field-group">
+            <label class="field-label">Difficulty</label>
+            <select class="field-input field-select" [(ngModel)]="difficulty">
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field-group">
+            <label class="field-label">Pass Mark</label>
+            <input type="number" class="field-input" [(ngModel)]="passMark" placeholder="e.g. 5" />
+          </div>
+          <div class="field-group">
+            <label class="field-label">Overall Time Limit (minutes)</label>
+            <input type="number" class="field-input" [(ngModel)]="timeLimit" placeholder="Leave blank for no limit" min="1" />
+            <span class="field-hint">Total time allowed for the entire quiz</span>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field-group">
+            <label class="field-label">Deadline (optional)</label>
+            <input type="datetime-local" class="field-input" [(ngModel)]="deadline" />
+            @if (deadline) {
+              <span class="field-hint deadline-hint">🗓 Closes on: {{ deadline | date:'dd MMM yyyy, hh:mm a' }}</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Questions -->
+      <div class="create-card">
+        <div class="questions-header">
+          <h3 class="card-title">Questions ({{ questions().length }}) @if (questions().length > 0) { <span class="total-marks-badge">{{ totalMarks() }} marks total</span> }</h3>
+          <div class="qheader-actions">
+            <button type="button" class="btn-bulk-q" (click)="openBulkPanel()">📥 Bulk</button>
+            <button type="button" class="btn-add-q" (click)="addQuestion()">+ Add Question</button>
+          </div>
+        </div>
+
+        <!-- Bulk Upload Panel -->
+        @if (showBulkPanel()) {
+          <div class="bulk-panel">
+            <div class="bulk-panel-header">
+              <span class="bulk-panel-title">📥 Bulk Upload via Excel</span>
+              <button type="button" class="btn-remove-q" (click)="closeBulkPanel()">✕</button>
+            </div>
+            <p class="bulk-hint">Columns: <code>QuestionText, OptionA, OptionB, OptionC, OptionD, CorrectOption, Marks</code></p>
+            <div class="bulk-actions-row">
+              <button type="button" class="btn-dl-template" (click)="downloadTemplate()">⬇ Download Template</button>
+              <label class="btn-choose-file">
+                📂 Choose File
+                <input #bulkFileInput type="file" accept=".xlsx,.xls,.csv" (change)="onBulkFileSelected($event)" style="display:none" />
+              </label>
+            </div>
+            @if (bulkFileName()) { <p class="bulk-filename">📄 {{ bulkFileName() }}</p> }
+            @if (bulkError()) { <p class="bulk-err">⚠️ {{ bulkError() }}</p> }
+            @if (bulkPreview().length > 0) {
+              <p class="bulk-preview-count">✅ {{ bulkPreview().length }} questions ready — will be added when you save the quiz.</p>
+            }
+          </div>
+        }
+
+        @if (questions().length === 0) {
+          <div class="no-questions">
+            <div class="nq-icon">❓</div>
+            <p>No questions yet. Click "Add Question" to start.</p>
+          </div>
+        }
+
+        @for (q of questions(); track $index; let qi = $index) {
+          <div class="question-block">
+            <div class="qblock-header">
+              <span class="qblock-num">Q{{ qi + 1 }}</span>
+              <button type="button" class="btn-remove-q" (click)="removeQuestion(qi)">✕</button>
+            </div>
+
+            <!-- Question Type Presets -->
+            <div class="field-group">
+              <label class="field-label">Question Type</label>
+              <div class="type-pills">
+                <button type="button" class="type-pill" [class.active]="q.type === 'custom'" (click)="setQuestionType(q, 'custom')">Custom</button>
+                <button type="button" class="type-pill" [class.active]="q.type === 'truefalse'" (click)="setQuestionType(q, 'truefalse')">True / False</button>
+                <button type="button" class="type-pill" [class.active]="q.type === 'yesno'" (click)="setQuestionType(q, 'yesno')">Yes / No</button>
+              </div>
+            </div>
+
+            <!-- Option Count (only for custom) -->
+            @if (q.type === 'custom') {
+              <div class="field-group">
+                <label class="field-label">Number of Options</label>
+                <div class="count-pills">
+                  @for (n of [2,3,4,5,6]; track n) {
+                    <button type="button" class="count-pill" [class.active]="q.optionCount === n" (click)="setOptionCount(q, n)">{{ n }}</button>
+                  }
+                </div>
+              </div>
+            }
+
+            <div class="field-group">
+              <label class="field-label">Question Text</label>
+              <textarea class="field-input field-textarea" [(ngModel)]="q.questionText" placeholder="Enter question..." rows="2"></textarea>
+            </div>
+
+            <div class="field-group marks-field">
+              <label class="field-label">Marks for this question</label>
+              <input
+                type="number"
+                class="field-input marks-input"
+                [(ngModel)]="q.marks"
+                min="1"
+                max="100"
+                placeholder="1"
+              />
+            </div>
+
+            <div class="options-section">
+              <label class="field-label">Options &amp; Correct Answer(s) <span class="multi-hint">(select all that apply)</span></label>
+              @for (key of optionKeys.slice(0, q.optionCount); track key) {
+                <div class="option-row">
+                  <span class="opt-tag" [class]="'opt-' + key">{{ key }}</span>
+                  <input
+                    type="text"
+                    class="field-input"
+                    [value]="getOptionValue(q, key)"
+                    (input)="setOptionValue(q, key, $any($event.target).value)"
+                    [placeholder]="'Option ' + key"
+                    [readonly]="q.type !== 'custom'"
+                  />
+                  <button
+                    type="button"
+                    class="correct-btn"
+                    [class.selected]="q.correctOptions.includes(key)"
+                    (click)="toggleCorrect(q, key)"
+                    [title]="q.correctOptions.includes(key) ? 'Remove correct' : 'Mark correct'"
+                  >✓</button>
+                </div>
+              }
+              @if (q.correctOptions.length > 0) {
+                <div class="correct-summary">
+                  Correct: <strong>{{ q.correctOptions.join(', ') }}</strong>
+                  @if (q.correctOptions.length > 1) { <span class="multi-badge">Multi-answer</span> }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Bottom Add Question button -->
+        @if (questions().length > 0) {
+          <div class="add-q-bottom">
+            <button type="button" class="btn-add-q-bottom" (click)="addQuestion()">+ Add Question</button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="create-footer">
+      <button class="btn-cancel" routerLink="/dashboard">Cancel</button>
+      <button class="btn-submit" (click)="onSubmit()" [disabled]="saving()">
+        @if (saving()) { <span class="spinner"></span> Saving... } @else { {{ isEdit() ? 'Update Quiz' : 'Create Quiz' }} 🚀 }
+      </button>
+    </div>
+  </div>
+</div>
