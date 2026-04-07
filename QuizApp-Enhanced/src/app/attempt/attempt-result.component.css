@@ -210,6 +210,26 @@
 }
 .btn-leaderboard:hover { background: var(--brand-hover); color: #fff; transform: translateY(-1px); }
 
+.btn-retry {
+  flex: 1; text-align: center;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff; border: none;
+  padding: 13px 22px; border-radius: var(--radius-md);
+  font-weight: 700; font-size: 0.9rem; cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.btn-retry:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.btn-upgrade-result {
+  flex: 1; text-align: center;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff; border: none;
+  padding: 13px 22px; border-radius: var(--radius-md);
+  font-weight: 700; font-size: 0.9rem; cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.btn-upgrade-result:hover { opacity: 0.9; transform: translateY(-1px); }
+
 /* ══════════════════════════════
    CERTIFICATE
 ══════════════════════════════ */

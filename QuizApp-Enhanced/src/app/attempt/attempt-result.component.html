@@ -166,8 +166,30 @@
         } @else {
           <a routerLink="/dashboard" class="btn-dashboard">← Back to Dashboard</a>
           <a routerLink="/leaderboard" class="btn-leaderboard">🏆 View Leaderboard</a>
+          @if (isPremiumTaker && result()!.requiresPaymentForRetry) {
+            <button class="btn-retry" (click)="showPaymentModal.set(true)">🔄 Retry (Pay ₹49)</button>
+          }
+          @if (isTaker) {
+            <button class="btn-upgrade-result" (click)="showUpgradeModal.set(true)">⭐ Upgrade to Retry</button>
+          }
         }
       </div>
+
+      <!-- Payment Modal -->
+      @if (showPaymentModal()) {
+        <app-payment-modal
+          [quizId]="result()?.quizId ?? ''"
+          [quizName]="quiz()?.quizName ?? ''"
+          (paymentConfirmed)="onPaymentConfirmed()"
+          (closed)="showPaymentModal.set(false)" />
+      }
+
+      <!-- Upgrade Modal -->
+      @if (showUpgradeModal()) {
+        <app-upgrade-modal
+          (upgraded)="onUpgraded()"
+          (closed)="showUpgradeModal.set(false)" />
+      }
 
     </div>
   }

@@ -1,0 +1,81 @@
+<div class="ph-page">
+  <div class="ph-container">
+
+    <div class="ph-header">
+      <a routerLink="/dashboard" class="ph-back">← Dashboard</a>
+      <h1 class="ph-title">💳 Payment History</h1>
+      <p class="ph-subtitle">All your retry payments for quiz attempts</p>
+    </div>
+
+    @if (loading()) {
+      <div class="ph-loading">
+        <div class="ph-spinner"></div>
+        <p>Loading payments...</p>
+      </div>
+    } @else if (error()) {
+      <div class="ph-error">{{ error() }}</div>
+    } @else if (!payments().length) {
+      <div class="ph-empty">
+        <div class="ph-empty-icon">💳</div>
+        <p class="ph-empty-title">No payments yet</p>
+        <p class="ph-empty-sub">Your first attempt on any quiz is always free. Payments appear here when you retry.</p>
+        <a routerLink="/dashboard" class="ph-btn-primary">Browse Quizzes</a>
+      </div>
+    } @else {
+      <div class="ph-stats">
+        <div class="ph-stat">
+          <span class="ph-stat-num">{{ payments().length }}</span>
+          <span class="ph-stat-lbl">Total Payments</span>
+        </div>
+        <div class="ph-stat">
+          <span class="ph-stat-num">{{ completedCount() }}</span>
+          <span class="ph-stat-lbl">Completed</span>
+        </div>
+        <div class="ph-stat">
+          <span class="ph-stat-num">₹{{ totalSpent() }}</span>
+          <span class="ph-stat-lbl">Total Spent</span>
+        </div>
+      </div>
+
+      <div class="ph-list">
+        @for (p of payments(); track p.paymentId) {
+          <div class="ph-card">
+            <div class="ph-card-left">
+              <div class="ph-card-icon">{{ p.subscriptionType === 'Monthly' ? '⭐' : '🎯' }}</div>
+              <div class="ph-card-info">
+                <p class="ph-card-quiz">
+                  {{ p.subscriptionType === 'Monthly' ? 'Monthly Subscription' : p.quizName }}
+                </p>
+                <p class="ph-card-date">{{ p.createdAt | date:'dd MMM yyyy, h:mm a' }}</p>
+                @if (p.subscriptionType === 'Monthly' && p.expiresAt) {
+                  <p class="ph-card-ref">
+                    {{ p.isActive ? '✅ Active until ' : '⏰ Expired ' }}{{ p.expiresAt | date:'dd MMM yyyy' }}
+                  </p>
+                }
+                @if (p.transactionRef) {
+                  <p class="ph-card-ref">Ref: {{ p.transactionRef }}</p>
+                }
+              </div>
+            </div>
+            <div class="ph-card-right">
+              <span class="ph-amount">₹{{ p.amount }}</span>
+              <span class="ph-status" [class]="statusClass(p.status)">
+                {{ statusIcon(p.status) }} {{ p.status }}
+              </span>
+              @if (p.subscriptionType === 'Monthly' && p.isActive) {
+                <span class="ph-available-badge">Active</span>
+              } @else if (p.subscriptionType === 'PerRetry') {
+                @if (p.isUsed) {
+                  <span class="ph-used-badge">Used</span>
+                } @else if (p.status === 'Completed') {
+                  <span class="ph-available-badge">Available</span>
+                }
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>

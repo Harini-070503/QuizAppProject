@@ -130,6 +130,40 @@ namespace QuizAppProject.Services
             }
         }
 
+        public async Task<AuthResponseDto> UpgradeToPremium(Guid userId)
+        {
+            try
+            {
+                var user = await _userRepo.Query()
+                    .FirstOrDefaultAsync(u => u.UserId == userId)
+                    ?? throw new KeyNotFoundException("User not found.");
+
+                if (!string.Equals(user.Role, "Taker", StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Only Takers can upgrade to PremiumTaker.");
+
+                user.Role = "PremiumTaker";
+                var updated = await _userRepo.Update(userId, user);
+                if (updated is null)
+                    throw new InvalidOperationException("Failed to upgrade user role.");
+
+                // Issue a fresh JWT with the new role
+                var newToken = _tokenService.GenerateToken(
+                    user.UserId, user.Username, user.Email, user.Role);
+
+                return new AuthResponseDto { Token = newToken };
+            }
+            catch (KeyNotFoundException) { throw; }
+            catch (InvalidOperationException) { throw; }
+            catch (DbUpdateException ex)
+            {
+                throw new InvalidOperationException("A database error occurred while upgrading the user.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Unexpected error while upgrading to PremiumTaker.", ex);
+            }
+        }
+
         public async Task<AuthResponseDto> Register(RegisterRequestDto request)
         {
             try

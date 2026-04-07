@@ -1,5 +1,21 @@
 <div class="quiz-container">
 
+  <!-- Payment Modal (PremiumTaker retry) -->
+  @if (showPaymentModal()) {
+    <app-payment-modal
+      [quizId]="quiz()?.quizId ?? ''"
+      [quizName]="quiz()?.quizName ?? ''"
+      (paymentConfirmed)="onPaymentConfirmed()"
+      (closed)="closePaymentModal()" />
+  }
+
+  <!-- Upgrade Modal (Taker → PremiumTaker) -->
+  @if (showUpgradeModal()) {
+    <app-upgrade-modal
+      (upgraded)="onUpgraded()"
+      (closed)="closeUpgradeModal()" />
+  }
+
   <!-- Loading -->
   @if (loading()) {
     <div class="loading-container">

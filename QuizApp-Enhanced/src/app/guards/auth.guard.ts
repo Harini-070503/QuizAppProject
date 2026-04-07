@@ -30,3 +30,10 @@ export const evaluatorGuard: CanActivateFn = () => {
   if (auth.isLoggedIn() && auth.isEvaluator()) return true;
   return router.createUrlTree(['/dashboard']);
 };
+
+export const premiumTakerGuard: CanActivateFn = () => {
+  const auth   = inject(AuthService);
+  const router = inject(Router);
+  if (auth.isLoggedIn() && auth.isPremiumTaker()) return true;
+  return router.createUrlTree(['/dashboard']);
+};

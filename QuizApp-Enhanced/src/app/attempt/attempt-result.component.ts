@@ -4,6 +4,8 @@ import { AttemptService } from '../service/attempt.service';
 import { QuizService } from '../service/quiz.service';
 import { AuthService } from '../service/auth.service';
 import { CoinService } from '../service/coin.service';
+import { PaymentModalComponent } from '../components/payment-modal/payment-modal.component';
+import { UpgradeModalComponent } from '../components/upgrade-modal/upgrade-modal.component';
 import { AttemptResultDto, QuizDto } from '../models/models';
 import { DecimalPipe } from '@angular/common';
 
@@ -12,7 +14,7 @@ import { DecimalPipe } from '@angular/common';
   styleUrl: './attempt-result.component.css',
   selector: 'app-attempt-result',
   standalone: true,
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink, DecimalPipe, PaymentModalComponent, UpgradeModalComponent],
 })
 export class AttemptResultComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -21,7 +23,10 @@ export class AttemptResultComponent implements OnInit {
   private quizSvc = inject(QuizService);
   private auth = inject(AuthService);
   coinSvc = inject(CoinService);
+
   get isEvaluator() { return this.auth.isEvaluator(); }
+  get isPremiumTaker() { return this.auth.isPremiumTaker(); }
+  get isTaker() { return this.auth.isTaker(); }
 
   @ViewChild('certCanvas') certCanvas!: ElementRef<HTMLCanvasElement>;
 
@@ -29,6 +34,8 @@ export class AttemptResultComponent implements OnInit {
   quiz   = signal<QuizDto | null>(null);
   loading = signal(true);
   showCertificate = signal(false);
+  showPaymentModal = signal(false);
+  showUpgradeModal = signal(false);
   coinsEarned = signal(0);
 
   correctCount = computed(() => {
@@ -211,6 +218,21 @@ export class AttemptResultComponent implements OnInit {
     link.download = `${name}-${quiz}-certificate.png`.toLowerCase();
     link.href = canvas.toDataURL('image/png');
     link.click();
+  }
+
+  retryQuiz() {
+    const quizId = this.result()?.quizId;
+    if (quizId) this.router.navigate(['/quiz', quizId]);
+  }
+
+  onPaymentConfirmed() {
+    this.showPaymentModal.set(false);
+    this.retryQuiz();
+  }
+
+  onUpgraded() {
+    this.showUpgradeModal.set(false);
+    this.retryQuiz();
   }
 
   ngOnInit() {

@@ -106,3 +106,12 @@
   color: var(--text-3);
   font-size: 0.82rem;
 }
+
+.role-badge-premium {
+  display: inline-block;
+  font-size: 0.65rem; font-weight: 700;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff; padding: 1px 6px;
+  border-radius: 20px; margin-left: 5px;
+  vertical-align: middle;
+}

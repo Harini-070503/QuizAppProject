@@ -2,6 +2,14 @@
 
 .welcome-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
 .welcome-title { font-size: 1.75rem; font-weight: 800; color: var(--text); margin: 0; }
+.premium-badge {
+  display: inline-block;
+  font-size: 0.75rem; font-weight: 700;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff; padding: 3px 10px;
+  border-radius: 20px; vertical-align: middle;
+  margin-left: 8px;
+}
 .welcome-sub { color: var(--text-3); margin: 4px 0 0; font-size: 0.93rem; }
 .creator-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
@@ -203,6 +211,7 @@
 .quiz-expired { opacity: 0.7; }
 .quiz-expired-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 100px; background: var(--danger-soft); color: var(--danger); }
 .quiz-active-badge  { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 100px; background: var(--success-soft); color: var(--success); }
+.premium-access-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 100px; background: #ede9fe; color: #5b21b6; }
 .deadline-meta { color: var(--warning) !important; }
 .btn-play-expired {
   display: flex; align-items: center; justify-content: center;

@@ -10,5 +10,6 @@ namespace QuizAppProject.Interfaces
         Task<UserDto?> GetByUsername(string username);
         Task<UserDto?> GetById(Guid id);
         Task<UserDto> UpdateUser(Guid id, UpdateUserDto request);
+        Task<AuthResponseDto> UpgradeToPremium(Guid userId);
     }
 }

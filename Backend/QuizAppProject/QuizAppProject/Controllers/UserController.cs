@@ -20,13 +20,13 @@ namespace QuizAppProject.Controllers
             _db = db;
         }
 
-        // GET: api/user/takers  — list all Taker users (for evaluator group management)
+        // GET: api/user/takers  — list Taker and PremiumTaker users (for evaluator group management)
         [Authorize]
         [HttpGet("takers")]
         public async Task<ActionResult<List<UserDto>>> GetTakers([FromQuery] string? search = null)
         {
             var query = _db.Users
-                .Where(u => u.Role == "Taker")
+                .Where(u => u.Role == "Taker" || u.Role == "PremiumTaker")
                 .AsNoTracking();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -36,10 +36,10 @@ namespace QuizAppProject.Controllers
 
             return Ok(users.Select(u => new UserDto
             {
-                UserId = u.UserId,
+                UserId   = u.UserId,
                 Username = u.Username,
-                Email = u.Email,
-                Role = u.Role
+                Email    = u.Email,
+                Role     = u.Role
             }).ToList());
         }
 
@@ -92,6 +92,21 @@ namespace QuizAppProject.Controllers
             {
                 throw;
             }
+        }
+
+        // POST: api/user/{id}/upgrade-to-premium
+        [Authorize]
+        [HttpPost("{id:guid}/upgrade-to-premium")]
+        public async Task<ActionResult<AuthResponseDto>> UpgradeToPremium(Guid id)
+        {
+            try
+            {
+                var result = await _users.UpgradeToPremium(id);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)      { return NotFound(new { message = ex.Message }); }
+            catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+            catch (Exception)                    { return StatusCode(500, new { message = "Unexpected error during upgrade." }); }
         }
     }
 }

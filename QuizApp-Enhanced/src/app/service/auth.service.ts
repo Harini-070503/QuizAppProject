@@ -27,11 +27,13 @@ export class AuthService {
     JSON.parse(localStorage.getItem(this.USER_KEY) ?? 'null')
   );
 
-  readonly isLoggedIn  = computed(() => !!this._token());
-  readonly currentUser = computed(() => this._currentUser());
-  readonly token       = computed(() => this._token());
-  readonly isCreator   = computed(() => this._currentUser()?.role === 'Creator');
-  readonly isEvaluator = computed(() => this._currentUser()?.role === 'Evaluator');
+  readonly isLoggedIn    = computed(() => !!this._token());
+  readonly currentUser   = computed(() => this._currentUser());
+  readonly token         = computed(() => this._token());
+  readonly isCreator     = computed(() => this._currentUser()?.role === 'Creator');
+  readonly isEvaluator   = computed(() => this._currentUser()?.role === 'Evaluator');
+  readonly isPremiumTaker = computed(() => this._currentUser()?.role === 'PremiumTaker');
+  readonly isTaker       = computed(() => this._currentUser()?.role === 'Taker');
 
   // ── Auth Methods ─────────────────────────────────────────────────────────
   register(dto: RegisterRequestDto): Observable<AuthResponseDto> {
@@ -74,7 +76,7 @@ export class AuthService {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  private storeToken(token: string): void {
+  storeToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
     this._token.set(token);
     const decoded = this.decodeToken(token);

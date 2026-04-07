@@ -26,21 +26,31 @@ export class SubmissionDetailComponent implements OnInit {
   saveMsg = signal('');
   showCert = signal(false);
 
-  // editable scores per question — use a signal so computed() reacts
+  // editable scores per question — plain object, updated via setScore
   editedScores = signal<Record<string, number>>({});
 
   editedTotal = computed(() =>
-    Object.values(this.editedScores()).reduce((s, v) => s + (v || 0), 0)
+    Object.values(this.editedScores()).reduce((s, v) => s + (Number(v) || 0), 0)
   );
 
-  // Determine correctness from answer vs correct option (not stored isCorrect)
+  editedPercentage = computed(() => {
+    const sub = this.submission();
+    if (!sub || sub.maxMark <= 0) return 0;
+    return Math.round(this.editedTotal() / sub.maxMark * 100);
+  });
+
+  getScore(questionId: string): number {
+    return this.editedScores()[questionId] ?? 0;
+  }
+
+  setScore(questionId: string, raw: string) {
+    const value = Math.max(0, parseInt(raw, 10) || 0);
+    this.editedScores.update(scores => ({ ...scores, [questionId]: value }));
+  }
+
   isAnswerCorrect(ans: SubmissionAnswerDto): boolean {
     if (!ans.chosenOption || !ans.correctOption) return false;
     return ans.chosenOption.trim().toUpperCase() === ans.correctOption.trim().toUpperCase();
-  }
-
-  setScore(questionId: string, value: number) {
-    this.editedScores.update(scores => ({ ...scores, [questionId]: value }));
   }
 
   ngOnInit() {
@@ -64,17 +74,19 @@ export class SubmissionDetailComponent implements OnInit {
     this.saveMsg.set('');
     const dto = {
       newTotalMark: this.editedTotal(),
-      questionScores: Object.entries(this.editedScores()).map(([questionId, marksAwarded]) => ({ questionId, marksAwarded }))
+      questionScores: Object.entries(this.editedScores()).map(([questionId, marksAwarded]) => ({
+        questionId,
+        marksAwarded: Number(marksAwarded) || 0
+      }))
     };
     this.attemptSvc.updateScore(s.attemptAnswerId, dto).subscribe({
       next: () => {
         this.saving.set(false);
         this.saveMsg.set('Scores saved successfully!');
-        // update local state
         this.submission.update(sub => sub ? {
           ...sub,
           totalMark: this.editedTotal(),
-          percentage: sub.maxMark > 0 ? Math.round(this.editedTotal() / sub.maxMark * 100) : 0
+          percentage: this.editedPercentage()
         } : sub);
         setTimeout(() => this.saveMsg.set(''), 3000);
       },

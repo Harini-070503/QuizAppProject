@@ -76,7 +76,12 @@
                         <div class="user-dropdown-item" (click)="selectUser(u)">
                           <span class="user-avatar-sm">{{ u.username.charAt(0).toUpperCase() }}</span>
                           <div class="user-info-sm">
-                            <span class="user-name-sm">{{ u.username }}</span>
+                            <span class="user-name-sm">
+                              {{ u.username }}
+                              @if (u.role === 'PremiumTaker') {
+                                <span class="role-badge-premium">⭐ Premium</span>
+                              }
+                            </span>
                             <span class="user-email-sm">{{ u.email }}</span>
                           </div>
                         </div>

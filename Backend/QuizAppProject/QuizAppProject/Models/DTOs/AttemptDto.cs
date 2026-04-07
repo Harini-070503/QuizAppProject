@@ -40,6 +40,12 @@ namespace QuizAppProject.Models.DTOs
         public double Percentage { get; set; }
         public bool IsPendingEvaluation { get; set; }
         public List<AttemptFeedbackItemDto> Feedback { get; set; }
+
+        /// <summary>
+        /// True when a PremiumTaker has used their free attempt and must pay to retry.
+        /// The frontend should show the payment option when this is true.
+        /// </summary>
+        public bool RequiresPaymentForRetry { get; set; }
     }
 }
 

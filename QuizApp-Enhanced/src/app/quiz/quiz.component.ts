@@ -7,6 +7,8 @@ import { AttemptService } from '../service/attempt.service';
 import { AuthService } from '../service/auth.service';
 import { ThemeService } from '../service/theme.service';
 import { GroupService } from '../service/group.service';
+import { PaymentModalComponent } from '../components/payment-modal/payment-modal.component';
+import { UpgradeModalComponent } from '../components/upgrade-modal/upgrade-modal.component';
 import { QuizDto, QuestionDto, AttemptAnswerItemDto } from '../models/models';
 
 export type Difficulty = 'All' | 'Easy' | 'Medium' | 'Hard';
@@ -23,7 +25,7 @@ interface QuestionState {
   styleUrl: './quiz.component.css',
   selector: 'app-quiz',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe],
+  imports: [CommonModule, FormsModule, DatePipe, PaymentModalComponent, UpgradeModalComponent],
 })
 export class QuizComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
@@ -51,6 +53,8 @@ export class QuizComponent implements OnInit, OnDestroy {
   error = signal('');
   submitting = signal(false);
   hasStarted = signal(false);
+  showPaymentModal = signal(false);
+  showUpgradeModal = signal(false);
   scratchpad = '';
 
   private timerInterval: any;
@@ -313,9 +317,20 @@ export class QuizComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.submitting.set(false);
         let msg = 'Failed to submit quiz. Please try again.';
-        if (err.status === 0) msg = 'Cannot connect to server.';
+        if (err.status === 0) msg = 'Cannot connect to server. Check if the backend is running.';
         else if (err.status === 401) msg = 'Session expired. Please login again.';
-        else if (err.error?.message) msg = err.error.message;
+        else if (err.status === 403) msg = 'You are not allowed to attempt this quiz.';
+        else {
+          msg = err.error?.detail ?? err.error?.message ?? err.error?.title ?? msg;
+        }
+        if (msg.includes('PAYMENT_REQUIRED')) {
+          this.showPaymentModal.set(true);
+          return;
+        }
+        if (msg.includes('UPGRADE_REQUIRED')) {
+          this.showUpgradeModal.set(true);
+          return;
+        }
         this.error.set(msg);
       }
     });
@@ -334,6 +349,26 @@ export class QuizComponent implements OnInit, OnDestroy {
     if (this.hasStarted() && !confirm('Exit quiz? Your progress will be lost.')) return;
     this.stopTimer();
     this.router.navigate(['/dashboard']);
+  }
+
+  /** Called when PremiumTaker completes payment — re-submit the quiz */
+  onPaymentConfirmed() {
+    this.showPaymentModal.set(false);
+    this.submitQuiz();
+  }
+
+  closePaymentModal() {
+    this.showPaymentModal.set(false);
+  }
+
+  /** Called when Taker upgrades to PremiumTaker — re-submit immediately */
+  onUpgraded() {
+    this.showUpgradeModal.set(false);
+    this.submitQuiz();
+  }
+
+  closeUpgradeModal() {
+    this.showUpgradeModal.set(false);
   }
 
   ngOnDestroy() {

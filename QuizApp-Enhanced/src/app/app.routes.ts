@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, creatorGuard, evaluatorGuard, guestGuard } from './guards/auth.guard';
+import { authGuard, creatorGuard, evaluatorGuard, guestGuard, premiumTakerGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./start-page/start-page.component').then(m => m.StartPageComponent) },
@@ -11,6 +11,7 @@ export const routes: Routes = [
   { path: 'leaderboard', canActivate: [authGuard], loadComponent: () => import('./leaderboard/leaderboard.component').then(m => m.LeaderboardComponent) },
   { path: 'profile', canActivate: [authGuard], loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent) },
   { path: 'user-details', canActivate: [authGuard], loadComponent: () => import('./user-details/user-details.component').then(m => m.UserDetailsComponent) },
+  { path: 'payments', canActivate: [authGuard, premiumTakerGuard], loadComponent: () => import('./payment/payment-history.component').then(m => m.PaymentHistoryComponent) },
   { path: 'admin/quiz/create', canActivate: [authGuard, creatorGuard], loadComponent: () => import('./question/quiz-create.component').then(m => m.QuizCreateComponent) },
   { path: 'admin/quiz/edit/:id', canActivate: [authGuard, creatorGuard], loadComponent: () => import('./question/quiz-create.component').then(m => m.QuizCreateComponent) },
   { path: 'admin/categories', canActivate: [authGuard, creatorGuard], loadComponent: () => import('./category/category-manage.component').then(m => m.CategoryManageComponent) },

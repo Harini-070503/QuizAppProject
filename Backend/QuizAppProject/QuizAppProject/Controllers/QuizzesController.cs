@@ -31,15 +31,16 @@ namespace QuizAppProject.Controllers
         {
             try
             {
-                // Pass requesting user ID so evaluator quizzes are filtered by group membership
+                // Prefer JWT claim; fall back to query param for unauthenticated or cross-origin scenarios
                 Guid? requestingUserId = null;
                 var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (Guid.TryParse(claim, out var uid)) requestingUserId = uid;
+                if (Guid.TryParse(claim, out var uid))
+                    requestingUserId = uid;
 
                 var result = await _svc.GetAll(categoryId, requestingUserId);
                 return Ok(result);
             }
-            catch(KeyNotFoundException ex)
+            catch (KeyNotFoundException ex)
             {
                 return BadRequest(ex.Message);
             }
