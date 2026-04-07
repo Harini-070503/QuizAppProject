@@ -12,8 +12,8 @@ using QuizAppProject.Context;
 namespace QuizAppProject.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260327164234_AddQuizGroups")]
-    partial class AddQuizGroups
+    [Migration("20260406083715_Quiz")]
+    partial class Quiz
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -113,6 +113,50 @@ namespace QuizAppProject.Migrations
                     b.HasKey("CategoryId");
 
                     b.ToTable("Categories", (string)null);
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.Notification", b =>
+                {
+                    b.Property<Guid>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LinkUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("NotificationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("QuizAppProject.Models.Option", b =>
@@ -446,6 +490,17 @@ namespace QuizAppProject.Migrations
                     b.Navigation("AttemptAnswer");
 
                     b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.Notification", b =>
+                {
+                    b.HasOne("QuizAppProject.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("QuizAppProject.Models.Option", b =>

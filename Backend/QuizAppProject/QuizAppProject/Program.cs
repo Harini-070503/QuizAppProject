@@ -87,6 +87,8 @@ builder.Services.AddScoped<IOptionService, OptionService>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
 builder.Services.AddScoped<IAttemptService, AttemptService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
+builder.Services.AddScoped<IQuizAllocationService, QuizAllocationService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 
 

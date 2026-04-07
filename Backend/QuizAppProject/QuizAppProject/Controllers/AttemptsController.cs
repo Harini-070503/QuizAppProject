@@ -23,19 +23,18 @@
             [HttpPost]
             public async Task<ActionResult<AttemptResultDto>> Submit([FromBody] AttemptSubmitDto dto)
             {
-              try
-              {
-                // User ID must now come from the DTO or client request
-                if (dto.UserId == Guid.Empty)
-                    return BadRequest("UserId is required.");
+                try
+                {
+                    if (dto.UserId == Guid.Empty)
+                        return BadRequest(new { message = "UserId is required." });
 
-                var res = await _svc.SubmitAttempt(dto.UserId, dto);
-                return Ok(res);
-              }
-              catch
-              {
-                throw;
-              }
+                    var res = await _svc.SubmitAttempt(dto.UserId, dto);
+                    return Ok(res);
+                }
+                catch (KeyNotFoundException ex)   { return NotFound(new { message = ex.Message }); }
+                catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+                catch (InvalidOperationException ex)   { return Conflict(new { message = ex.Message }); }
+                catch (Exception)                      { return StatusCode(500, new { message = "Unexpected error while submitting the quiz." }); }
             }
 
             // GET: api/attempts/mine?userId={userId}

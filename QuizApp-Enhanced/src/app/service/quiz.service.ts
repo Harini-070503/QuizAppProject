@@ -8,9 +8,10 @@ export class QuizService {
   private readonly BASE = 'http://localhost:5137/api/quizzes';
   private http = inject(HttpClient);
 
-  getAll(categoryId?: string): Observable<QuizDto[]> {
+  getAll(categoryId?: string, userId?: string): Observable<QuizDto[]> {
     let params = new HttpParams();
     if (categoryId) params = params.set('categoryId', categoryId);
+    if (userId)     params = params.set('userId', userId);
     return this.http.get<QuizDto[]>(this.BASE, { params }).pipe(
       catchError(err => throwError(() => err))
     );

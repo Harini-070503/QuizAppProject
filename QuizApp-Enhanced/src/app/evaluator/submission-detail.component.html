@@ -26,9 +26,7 @@
         </div>
         <div class="score-item">
           <span class="score-label">Percentage</span>
-          <span class="score-big pct-color">
-            {{ s.maxMark > 0 ? (editedTotal() / s.maxMark * 100 | number:'1.0-0') : 0 }}%
-          </span>
+          <span class="score-big pct-color">{{ editedPercentage() }}%</span>
         </div>
         <div class="score-actions">
           <button class="btn-save-scores" (click)="saveScores()" [disabled]="saving()">
@@ -71,8 +69,8 @@
                 <input
                   type="number"
                   class="marks-input"
-                  [value]="editedScores()[ans.questionId] || 0"
-                  (input)="setScore(ans.questionId, +$any($event.target).value)"
+                  [ngModel]="getScore(ans.questionId)"
+                  (ngModelChange)="setScore(ans.questionId, $event)"
                   [min]="0"
                   [max]="ans.maxMarks"
                 />

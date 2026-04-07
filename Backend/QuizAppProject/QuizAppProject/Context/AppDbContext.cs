@@ -20,6 +20,8 @@ namespace QuizAppProject.Context
         public DbSet<QuizGroup> QuizGroups => Set<QuizGroup>();
         public DbSet<QuizGroupMember> QuizGroupMembers => Set<QuizGroupMember>();
         public DbSet<Notification> Notifications => Set<Notification>();
+        public DbSet<QuizAllocation> QuizAllocations => Set<QuizAllocation>();
+        public DbSet<QuizPayment> QuizPayments => Set<QuizPayment>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -244,6 +246,46 @@ namespace QuizAppProject.Context
                     .HasForeignKey(x => x.GroupId)
                     .IsRequired(false)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // ---------- QuizPayment ----------
+            modelBuilder.Entity<QuizPayment>(e =>
+            {
+                e.ToTable("QuizPayments");
+                e.HasKey(x => x.PaymentId);
+                e.Property(x => x.PaymentId).HasDefaultValueSql("NEWID()");
+                e.Property(x => x.Amount).HasColumnType("decimal(10,2)");
+                e.Property(x => x.SubscriptionType).IsRequired().HasMaxLength(20);
+                e.Property(x => x.Status).IsRequired().HasMaxLength(20);
+                e.Property(x => x.TransactionRef).HasMaxLength(200).IsRequired(false);
+                e.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                e.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Quiz)
+                    .WithMany()
+                    .HasForeignKey(x => x.QuizId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // ---------- QuizAllocation ----------
+            modelBuilder.Entity<QuizAllocation>(e =>
+            {
+                e.ToTable("QuizAllocations");
+                e.HasKey(x => x.AllocationId);
+                e.Property(x => x.AllocationId).HasDefaultValueSql("NEWID()");
+                e.Property(x => x.AllocatedAt).HasDefaultValueSql("GETUTCDATE()");
+                e.HasIndex(x => new { x.QuizId, x.UserId }).IsUnique();
+                e.HasOne(x => x.Quiz)
+                    .WithMany()
+                    .HasForeignKey(x => x.QuizId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // ---------- Notification ----------

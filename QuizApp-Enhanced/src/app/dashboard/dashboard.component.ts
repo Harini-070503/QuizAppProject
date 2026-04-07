@@ -90,7 +90,8 @@ export class DashboardComponent implements OnInit {
     }
     this.catSvc.getAll().subscribe({ next: c => this.categories.set(c), error: () => {} });
     this.lbSvc.getTop(undefined, 10).subscribe({ next: l => this.leaderboard.set(l), error: () => {} });
-    this.quizSvc.getAll().subscribe({
+    const userId = this.auth.currentUser()?.userId;
+    this.quizSvc.getAll(undefined, userId).subscribe({
       next: q => { this.quizzes.set(q); this.loading.set(false); },
       error: () => this.loading.set(false)
     });

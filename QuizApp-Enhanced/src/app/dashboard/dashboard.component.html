@@ -11,9 +11,13 @@
       <div>
         <h1 class="welcome-title">
           Hey, <span class="gradient-text">{{ auth.currentUser()?.username }}</span> 👋
+          @if (auth.isPremiumTaker()) {
+            <span class="premium-badge">⭐ Premium</span>
+          }
         </h1>
         <p class="welcome-sub">
           @if (auth.isCreator()) { Ready to manage your quizzes? }
+          @else if (auth.isPremiumTaker()) { Unlimited access — retry any quiz anytime. }
           @else { Ready to challenge yourself today? }
         </p>
       </div>
@@ -24,6 +28,13 @@
           </a>
           <a routerLink="/admin/quiz/create" class="btn-create">
             <span>+</span> New Quiz
+          </a>
+        </div>
+      }
+      @if (auth.isPremiumTaker()) {
+        <div class="creator-actions">
+          <a routerLink="/payments" class="btn-create btn-secondary">
+            <span>💳</span> Payment History
           </a>
         </div>
       }
@@ -254,6 +265,9 @@
                       <span class="quiz-expired-badge">Expired</span>
                     } @else if (quiz.deadline) {
                       <span class="quiz-active-badge">Active</span>
+                    }
+                    @if (auth.isPremiumTaker()) {
+                      <span class="premium-access-badge">⭐ Unlimited</span>
                     }
                   </div>
                   <h4 class="quiz-name">{{ quiz.quizName }}</h4>

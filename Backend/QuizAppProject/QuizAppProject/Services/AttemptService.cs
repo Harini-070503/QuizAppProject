@@ -40,8 +40,77 @@ namespace QuizAppProject.Services
                     .FirstOrDefaultAsync(q => q.QuizId == request.QuizId)
                     ?? throw new KeyNotFoundException("Quiz not found.");
 
-                // Determine if this is an evaluator quiz (manual grading only)
+                // ── Role-based access & attempt limit enforcement ──
+                var taker = await _db.Users.AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.UserId == userId)
+                    ?? throw new KeyNotFoundException("User not found.");
+
+                bool isPremiumTaker = string.Equals(taker.Role, "PremiumTaker", StringComparison.OrdinalIgnoreCase);
+                bool isNormalTaker  = string.Equals(taker.Role, "Taker", StringComparison.OrdinalIgnoreCase);
+
+                // Determine quiz type early (needed for access checks below)
                 bool isEvaluatorQuiz = string.Equals(quiz.User?.Role, "Evaluator", StringComparison.OrdinalIgnoreCase);
+
+                // Track whether we need to consume a payment slot
+                QuizPayment? paymentToConsume = null;
+
+                if (isNormalTaker)
+                {
+                    if (isEvaluatorQuiz)
+                    {
+                        // Evaluator quizzes are group-restricted — Taker must be a group member
+                        var isMember = quiz.GroupId.HasValue && await _db.QuizGroupMembers
+                            .AnyAsync(m => m.GroupId == quiz.GroupId.Value && m.UserId == userId);
+                        if (!isMember)
+                            throw new UnauthorizedAccessException("You are not assigned to this quiz.");
+                    }
+
+                    // All Takers — only one attempt allowed per quiz
+                    var alreadyAttempted = await _attemptRepo.Query()
+                        .AnyAsync(a => a.QuizId == request.QuizId && a.UserId == userId);
+                    if (alreadyAttempted)
+                        throw new InvalidOperationException(
+                            "UPGRADE_REQUIRED: You have used your one free attempt. Upgrade to PremiumTaker to retry any quiz unlimited times.");
+                }
+                else if (isPremiumTaker)
+                {
+                    if (isEvaluatorQuiz)
+                    {
+                        var isMember = quiz.GroupId.HasValue && await _db.QuizGroupMembers
+                            .AnyAsync(m => m.GroupId == quiz.GroupId.Value && m.UserId == userId);
+                        if (!isMember)
+                            throw new UnauthorizedAccessException("You are not assigned to this quiz.");
+                    }
+
+                    var previousAttemptCount = await _attemptRepo.Query()
+                        .CountAsync(a => a.QuizId == request.QuizId && a.UserId == userId);
+
+                    if (previousAttemptCount > 0)
+                    {
+                        // 1. Check active monthly subscription first — covers unlimited retries
+                        bool hasMonthly = await _db.QuizPayments
+                            .AnyAsync(p => p.UserId == userId
+                                        && p.SubscriptionType == "Monthly"
+                                        && p.Status == "Completed"
+                                        && p.ExpiresAt > DateTime.UtcNow);
+
+                        if (!hasMonthly)
+                        {
+                            // 2. Fall back to per-retry payment for this specific quiz
+                            paymentToConsume = await _db.QuizPayments
+                                .FirstOrDefaultAsync(p => p.UserId == userId
+                                                       && p.QuizId == request.QuizId
+                                                       && p.SubscriptionType == "PerRetry"
+                                                       && p.Status == "Completed"
+                                                       && !p.IsUsed);
+
+                            if (paymentToConsume == null)
+                                throw new InvalidOperationException(
+                                    "PAYMENT_REQUIRED: You have used your free attempt. Subscribe monthly or pay per retry.");
+                        }
+                        // Monthly subscription active → no payment to consume, retry is free
+                    }
+                }
 
                 // Validate time limit if provided
                 if (quiz.TimeLimit.HasValue && request.StartedAtUtc.HasValue && request.EndedAtUtc.HasValue)
@@ -147,6 +216,22 @@ namespace QuizAppProject.Services
 
                 await _db.SaveChangesAsync();
 
+                // Consume the payment slot now that the attempt is committed
+                if (paymentToConsume != null)
+                {
+                    paymentToConsume.IsUsed = true;
+                    await _db.SaveChangesAsync();
+                }
+
+                // After this attempt, check if PremiumTaker will need to pay for the NEXT retry
+                bool requiresPaymentForRetry = false;
+                if (isPremiumTaker)
+                {
+                    var totalAttempts = await _attemptRepo.Query()
+                        .CountAsync(a => a.QuizId == quiz.QuizId && a.UserId == userId);
+                    requiresPaymentForRetry = totalAttempts >= 1; // they now have ≥1 attempt, next needs payment
+                }
+
                 return new AttemptResultDto
                 {
                     AttemptAnswerId = attempt.AttemptAnswerId,
@@ -154,6 +239,7 @@ namespace QuizAppProject.Services
                     TotalMark = totalMark,
                     Percentage = attempt.Percentage,
                     IsPendingEvaluation = isEvaluatorQuiz,
+                    RequiresPaymentForRetry = requiresPaymentForRetry,
                     Feedback = feedback
                 };
             }

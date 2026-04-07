@@ -17,11 +17,14 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((err: HttpErrorResponse) => {
       switch (err.status) {
         case 401:
-          auth.logout();
-          router.navigate(['/login']);
+          // Only auto-logout on 401 from auth endpoints, not from business logic
+          if (!err.url?.includes('/api/attempts')) {
+            auth.logout();
+            router.navigate(['/login']);
+          }
           break;
         case 403:
-          router.navigate(['/dashboard']);
+          // Don't redirect — let the component handle it and show the message
           break;
         case 500:
           console.error('[QuizZap] Server error:', err.message);

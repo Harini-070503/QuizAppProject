@@ -1,0 +1,36 @@
+<div class="modal-backdrop" (click)="goToDashboard()"></div>
+<div class="upgrade-modal">
+  <button class="modal-close" (click)="goToDashboard()">✕</button>
+
+  @if (!done()) {
+    <div class="modal-header">
+      <div class="modal-icon">🚀</div>
+      <h2 class="modal-title">Upgrade to Premium</h2>
+      <p class="modal-subtitle">You've used your one free attempt.</p>
+      <p class="modal-subtitle">Upgrade to <strong>PremiumTaker</strong> to retry any quiz unlimited times!</p>
+    </div>
+
+    <div class="upgrade-benefits">
+      <div class="benefit-item">⭐ <span>Unlimited retries on all quizzes</span></div>
+      <div class="benefit-item">💳 <span>Monthly subscription available (₹299/month)</span></div>
+      <div class="benefit-item">🎯 <span>Or pay ₹49 per individual retry</span></div>
+      <div class="benefit-item">🏆 <span>Access to all quiz categories</span></div>
+    </div>
+
+    @if (error()) {
+      <div class="modal-error">{{ error() }}</div>
+    }
+
+    <button class="btn-upgrade" [disabled]="loading()" (click)="upgrade()">
+      @if (loading()) { Upgrading... } @else { ⭐ Upgrade to Premium Now }
+    </button>
+    <button class="btn-cancel" (click)="goToDashboard()">Maybe Later</button>
+  } @else {
+    <div class="modal-header">
+      <div class="modal-icon success-icon">🎉</div>
+      <h2 class="modal-title">You're now a Premium Taker!</h2>
+      <p class="modal-subtitle">Your account has been upgraded. You can now retry this quiz.</p>
+    </div>
+    <button class="btn-upgrade" (click)="upgraded.emit()">Retry Quiz Now</button>
+  }
+</div>

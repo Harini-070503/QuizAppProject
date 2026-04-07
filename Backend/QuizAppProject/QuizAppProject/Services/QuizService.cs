@@ -126,14 +126,21 @@ namespace QuizAppProject.Services
 
                 var list = await query.ToListAsync();
 
-                // Get group memberships for the requesting user (if provided)
+                // Resolve requesting user's role and group memberships
                 HashSet<Guid> memberGroupIds = new();
+                string? requestingUserRole = null;
+
                 if (requestingUserId.HasValue)
                 {
                     memberGroupIds = (await _db.QuizGroupMembers
                         .Where(m => m.UserId == requestingUserId.Value)
                         .Select(m => m.GroupId)
                         .ToListAsync()).ToHashSet();
+
+                    requestingUserRole = await _db.Users
+                        .Where(u => u.UserId == requestingUserId.Value)
+                        .Select(u => u.Role)
+                        .FirstOrDefaultAsync();
                 }
 
                 var result = new List<QuizDto>();
@@ -144,45 +151,44 @@ namespace QuizAppProject.Services
 
                     if (isEvaluatorQuiz)
                     {
-                        // Evaluator quiz: only visible if:
-                        // 1. No group assigned (open evaluator quiz — still restricted, skip)
-                        // 2. Requesting user is the evaluator themselves
-                        // 3. Requesting user is a member of the assigned group
-                        if (!requestingUserId.HasValue) continue; // anonymous — hide all evaluator quizzes
+                        // Evaluator quizzes: only visible to the evaluator owner or group members
+                        if (!requestingUserId.HasValue) continue;
 
-                        bool isOwner = q.UserId == requestingUserId.Value;
+                        bool isOwner  = q.UserId == requestingUserId.Value;
                         bool isMember = q.GroupId.HasValue && memberGroupIds.Contains(q.GroupId.Value);
 
-                        if (!isOwner && !isMember) continue; // not accessible
+                        if (!isOwner && !isMember) continue;
                     }
+                    // Creator quizzes are public — visible to everyone (Taker, PremiumTaker, Creator, anonymous)
+                    // Attempt restrictions (allocation / payment) are enforced in AttemptService, not here.
 
                     result.Add(new QuizDto
                     {
-                        QuizId = q.QuizId,
-                        QuizName = q.QuizName,
-                        Description = q.Description,
+                        QuizId          = q.QuizId,
+                        QuizName        = q.QuizName,
+                        Description     = q.Description,
                         DifficultyLevel = q.DifficultyLevel,
-                        TimeLimit = q.TimeLimit,
-                        Deadline = q.Deadline,
-                        PassMark = q.PassMark,
-                        TotalQuestion = q.TotalQuestion,
-                        Category = new CategoryDto { CategoryId = q.CategoryId ?? Guid.Empty, CategoryName = q.Category?.CategoryName ?? "Uncategorized" },
-                        CreatorId = q.UserId,
-                        GroupId = q.GroupId,
-                        CreatorRole = creatorRole,
-                        CreatorName = q.User?.UserDetails?.Name ?? q.User?.Username,
-                        Questions = q.Questions.Select(qq => new QuestionDto
+                        TimeLimit       = q.TimeLimit,
+                        Deadline        = q.Deadline,
+                        PassMark        = q.PassMark,
+                        TotalQuestion   = q.TotalQuestion,
+                        Category        = new CategoryDto { CategoryId = q.CategoryId ?? Guid.Empty, CategoryName = q.Category?.CategoryName ?? "Uncategorized" },
+                        CreatorId       = q.UserId,
+                        GroupId         = q.GroupId,
+                        CreatorRole     = creatorRole,
+                        CreatorName     = q.User?.UserDetails?.Name ?? q.User?.Username,
+                        Questions       = q.Questions.Select(qq => new QuestionDto
                         {
-                            QuestionId = qq.QuestionId,
+                            QuestionId   = qq.QuestionId,
                             QuestionText = qq.QuestionText,
-                            Marks = qq.Marks,
-                            Options = new OptionDto
+                            Marks        = qq.Marks,
+                            Options      = qq.Options == null ? null : new OptionDto
                             {
-                                OptionId = qq.Options.OptionId,
-                                OptionA = qq.Options.OptionA,
-                                OptionB = qq.Options.OptionB,
-                                OptionC = qq.Options.OptionC,
-                                OptionD = qq.Options.OptionD,
+                                OptionId      = qq.Options.OptionId,
+                                OptionA       = qq.Options.OptionA,
+                                OptionB       = qq.Options.OptionB,
+                                OptionC       = qq.Options.OptionC,
+                                OptionD       = qq.Options.OptionD,
                                 CorrectOption = qq.Options.CorrectOption
                             }
                         }).ToList()
@@ -334,7 +340,7 @@ namespace QuizAppProject.Services
                         QuestionId = qq.QuestionId,
                         QuestionText = qq.QuestionText,
                         Marks = qq.Marks,
-                        Options = new OptionDto
+                        Options = qq.Options == null ? null : new OptionDto
                         {
                             OptionId = qq.Options.OptionId,
                             OptionA = qq.Options.OptionA,

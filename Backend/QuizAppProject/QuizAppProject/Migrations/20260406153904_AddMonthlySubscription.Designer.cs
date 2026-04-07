@@ -12,8 +12,8 @@ using QuizAppProject.Context;
 namespace QuizAppProject.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260325161317_AddQuestionMarks")]
-    partial class AddQuestionMarks
+    [Migration("20260406153904_AddMonthlySubscription")]
+    partial class AddMonthlySubscription
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -58,6 +58,41 @@ namespace QuizAppProject.Migrations
                     b.ToTable("AttemptAnswers", (string)null);
                 });
 
+            modelBuilder.Entity("QuizAppProject.Models.AttemptAnswerDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<Guid>("AttemptAnswerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChosenOption")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MarksAwarded")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxMarks")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttemptAnswerId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("AttemptAnswerDetails", (string)null);
+                });
+
             modelBuilder.Entity("QuizAppProject.Models.Category", b =>
                 {
                     b.Property<Guid>("CategoryId")
@@ -78,6 +113,50 @@ namespace QuizAppProject.Migrations
                     b.HasKey("CategoryId");
 
                     b.ToTable("Categories", (string)null);
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.Notification", b =>
+                {
+                    b.Property<Guid>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LinkUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("NotificationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("QuizAppProject.Models.Option", b =>
@@ -166,6 +245,9 @@ namespace QuizAppProject.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<DateTime?>("Deadline")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -175,6 +257,9 @@ namespace QuizAppProject.Migrations
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("PassMark")
                         .HasColumnType("int");
@@ -197,9 +282,151 @@ namespace QuizAppProject.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("GroupId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Quizzes", (string)null);
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.QuizAllocation", b =>
+                {
+                    b.Property<Guid>("AllocationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<DateTime>("AllocatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("AllocationId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("QuizId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("QuizAllocations", (string)null);
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.QuizGroup", b =>
+                {
+                    b.Property<Guid>("GroupId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("EvaluatorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("GroupId");
+
+                    b.HasIndex("EvaluatorId");
+
+                    b.ToTable("QuizGroups", (string)null);
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.QuizGroupMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<DateTime>("AddedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("GroupId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("QuizGroupMembers", (string)null);
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.QuizPayment", b =>
+                {
+                    b.Property<Guid>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("QuizId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SubscriptionType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TransactionRef")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("QuizId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("QuizPayments", (string)null);
                 });
 
             modelBuilder.Entity("QuizAppProject.Models.User", b =>
@@ -327,6 +554,36 @@ namespace QuizAppProject.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("QuizAppProject.Models.AttemptAnswerDetail", b =>
+                {
+                    b.HasOne("QuizAppProject.Models.AttemptAnswer", "AttemptAnswer")
+                        .WithMany("Details")
+                        .HasForeignKey("AttemptAnswerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizAppProject.Models.Question", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("AttemptAnswer");
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.Notification", b =>
+                {
+                    b.HasOne("QuizAppProject.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("QuizAppProject.Models.Option", b =>
                 {
                     b.HasOne("QuizAppProject.Models.Question", "Question")
@@ -356,6 +613,11 @@ namespace QuizAppProject.Migrations
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("QuizAppProject.Models.QuizGroup", "Group")
+                        .WithMany("Quizzes")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("QuizAppProject.Models.User", "User")
                         .WithMany("Quizzes")
                         .HasForeignKey("UserId")
@@ -363,6 +625,75 @@ namespace QuizAppProject.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.QuizAllocation", b =>
+                {
+                    b.HasOne("QuizAppProject.Models.Quiz", "Quiz")
+                        .WithMany()
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizAppProject.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Quiz");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.QuizGroup", b =>
+                {
+                    b.HasOne("QuizAppProject.Models.User", "Evaluator")
+                        .WithMany()
+                        .HasForeignKey("EvaluatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Evaluator");
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.QuizGroupMember", b =>
+                {
+                    b.HasOne("QuizAppProject.Models.QuizGroup", "Group")
+                        .WithMany("Members")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizAppProject.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.QuizPayment", b =>
+                {
+                    b.HasOne("QuizAppProject.Models.Quiz", "Quiz")
+                        .WithMany()
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("QuizAppProject.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Quiz");
 
                     b.Navigation("User");
                 });
@@ -376,6 +707,11 @@ namespace QuizAppProject.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.AttemptAnswer", b =>
+                {
+                    b.Navigation("Details");
                 });
 
             modelBuilder.Entity("QuizAppProject.Models.Category", b =>
@@ -392,6 +728,13 @@ namespace QuizAppProject.Migrations
             modelBuilder.Entity("QuizAppProject.Models.Quiz", b =>
                 {
                     b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("QuizAppProject.Models.QuizGroup", b =>
+                {
+                    b.Navigation("Members");
+
+                    b.Navigation("Quizzes");
                 });
 
             modelBuilder.Entity("QuizAppProject.Models.User", b =>

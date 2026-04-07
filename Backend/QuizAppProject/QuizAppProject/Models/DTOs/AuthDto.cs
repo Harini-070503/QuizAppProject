@@ -14,7 +14,7 @@ namespace QuizAppProject.Models.DTOs
         [Required, MinLength(6)]
         public string Password { get; set; }
 
-        /// <summary>Allowed values: "Creator" | "Taker"</summary>
+        /// <summary>Allowed values: "Creator" | "Taker" | "PremiumTaker" | "Evaluator"</summary>
         [Required, MaxLength(20)]
         public string Role { get; set; }
 
@@ -33,7 +33,7 @@ namespace QuizAppProject.Models.DTOs
         [Required, MinLength(6)]
         public string Password { get; set; }
 
-        /// <summary>Allowed values: "Creator" | "Taker"</summary>
+        /// <summary>Allowed values: "Creator" | "Taker" | "PremiumTaker" | "Evaluator"</summary>
         [Required, MaxLength(20)]
         public string Role { get; set; }
 

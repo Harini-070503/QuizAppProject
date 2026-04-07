@@ -208,6 +208,7 @@ export interface AttemptResultDto {
   totalMark: number;
   percentage: number;
   isPendingEvaluation?: boolean;
+  requiresPaymentForRetry?: boolean;
   feedback: AttemptFeedbackItemDto[];
 }
 
@@ -312,4 +313,46 @@ export interface GroupMemberDto {
 export interface GroupCreateDto {
   groupName: string;
   description?: string;
+}
+
+// ===== PAYMENT =====
+
+export interface PaymentInitiateDto {
+  userId: string;
+  quizId: string;
+}
+
+export interface MonthlySubscriptionInitiateDto {
+  userId: string;
+}
+
+export interface PaymentConfirmDto {
+  paymentId: string;
+  transactionRef: string;
+}
+
+export interface PaymentResponseDto {
+  paymentId: string;
+  quizId?: string;
+  quizName?: string;
+  subscriptionType: string;  // PerRetry | Monthly
+  amount: number;
+  status: string;
+  isUsed: boolean;
+  transactionRef?: string;
+  createdAt: string;
+  paidAt?: string;
+  expiresAt?: string;
+  isActive: boolean;         // true if Monthly and not expired
+}
+
+// ===== QUIZ ALLOCATION =====
+
+export interface QuizAllocationDto {
+  allocationId: string;
+  quizId: string;
+  quizName: string;
+  userId: string;
+  username: string;
+  allocatedAt: string;
 }

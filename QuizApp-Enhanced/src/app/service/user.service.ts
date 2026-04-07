@@ -22,4 +22,9 @@ export class UserService {
     const url = search ? `${this.BASE}/takers?search=${encodeURIComponent(search)}` : `${this.BASE}/takers`;
     return this.http.get<UserDto[]>(url).pipe(catchError(e => throwError(() => e)));
   }
+
+  upgradeToPremium(userId: string): Observable<{ token: string }> {
+    return this.http.post<{ token: string }>(`${this.BASE}/${userId}/upgrade-to-premium`, {})
+      .pipe(catchError(e => throwError(() => e)));
+  }
 }
